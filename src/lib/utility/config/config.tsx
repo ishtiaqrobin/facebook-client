@@ -5,7 +5,7 @@ export const ENDPOINTS = {
   // Authentication & Registration
   logout: `${API_BASE_URL}/logout/`,
 
-  // Facebook Login
+  // Facebook Login & User Data
   facebookLogin: `${API_BASE_URL}/facebook/login/`,
   facebookUserData: `${API_BASE_URL}/facebook/callback/`,
 
