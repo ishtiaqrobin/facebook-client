@@ -107,7 +107,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
     if (redirectUrl) {
-      localStorage.setItem("redirect_url", redirectUrl);
+      localStorage.setItem(
+        "redirect_url",
+        redirectUrl || "https://www.facebook-poster.ezbitly.com"
+      );
     }
   }, [router]);
 

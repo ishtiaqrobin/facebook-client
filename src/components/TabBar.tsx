@@ -494,7 +494,9 @@ export const TabContent: React.FC<TabContentProps> = ({
                       src={profile.picture?.data?.url}
                       alt={profile.name}
                     />
-                    <AvatarFallback>{profile.name?.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>
+                      {profile.name ? profile.name.charAt(0) : "?"}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <h5 className="text-lg font-medium text-gray-900 dark:text-gray-100">
@@ -538,7 +540,9 @@ export const TabContent: React.FC<TabContentProps> = ({
                           src={page.picture?.data?.url}
                           alt={page.name}
                         />
-                        <AvatarFallback>{page.name?.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>
+                          {page.name ? page.name.charAt(0) : "?"}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <h6 className="font-medium text-gray-900 dark:text-gray-100">
@@ -582,7 +586,9 @@ export const TabContent: React.FC<TabContentProps> = ({
                         alt={tab.profileData.name}
                       />
                       <AvatarFallback>
-                        {tab.profileData.name.charAt(0)}
+                        {tab.profileData.name
+                          ? tab.profileData.name.charAt(0)
+                          : "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
