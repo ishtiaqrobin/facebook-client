@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 
+// https://nextjs.org/docs/messages/export-image-api
 const nextConfig: NextConfig = {
   output: "standalone",
   images: {
