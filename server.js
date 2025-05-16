@@ -1,14 +1,17 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    images: {
-        domains: [
-            'daisyui.com',
-            'graph.facebook.com',
-            'platform-lookaside.fbsbx.com',
-            'scontent.fjsr1-1.fna.fbcdn.net',
-            'scontent.fdac24-2.fna.fbcdn.net'
-        ],
-    },
-};
+import { createServer } from 'http';
+import { parse } from 'url';
+import next from 'next';
 
-export default nextConfig;
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
+app.prepare().then(() => {
+    createServer((req, res) => {
+        const parsedUrl = parse(req.url, true);
+        handle(req, res, parsedUrl);
+    }).listen(process.env.PORT || 3000, '0.0.0.0', (err) => {
+        if (err) throw err;
+        console.log('> Ready on http://0.0.0.0:' + (process.env.PORT || 3000));
+    });
+});

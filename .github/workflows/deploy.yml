@@ -1,0 +1,47 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+
+      - name: Deploy to cPanel
+        uses: appleboy/scp-action@master
+        with:
+          host: facebook-poster.ezbitly.com
+          username: ezbitlyc
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          source: ".next,package.json,package-lock.json,public,server.js"
+          target: "/home/ezbitlyc/facebook-poster.ezbitly.com"
+          strip_components: 0
+
+      - name: Restart Node.js App
+        uses: appleboy/ssh-action@master
+        with:
+          host: facebook-poster.ezbitly.com
+          username: ezbitlyc
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          script: |
+            cd /home/ezbitlyc/facebook-poster.ezbitly.com
+            source /home/ezbitlyc/nodevenv/facebook-poster.ezbitly.com/20/bin/activate
+            npm install
+            kill $(lsof -t -i:3000) || true
+            nohup npm start > app.log 2>&1 &
