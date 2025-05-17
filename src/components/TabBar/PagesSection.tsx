@@ -17,7 +17,7 @@ export const PagesSection: React.FC<PagesSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">
+      <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
         Pages
       </h4>
       {pagesLoading ? (
@@ -32,9 +32,9 @@ export const PagesSection: React.FC<PagesSectionProps> = ({
           {pages.map((page) => (
             <div
               key={page.id}
-              className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+              className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
             >
-              <Avatar className="h-12 w-12">
+              <Avatar className="h-12 w-12 bg-gray-100 dark:bg-gray-700">
                 <AvatarImage src={page.picture?.data?.url} alt={page.name} />
                 <AvatarFallback>
                   {page.name ? page.name.charAt(0) : "?"}

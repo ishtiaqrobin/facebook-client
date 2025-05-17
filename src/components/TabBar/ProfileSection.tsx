@@ -14,7 +14,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   profileError,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">
         Profile
       </h4>

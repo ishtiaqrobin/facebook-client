@@ -3,9 +3,10 @@ import { Tab } from "./types";
 
 interface SessionInfoProps {
   tab: Tab;
+  updateTab: (id: string, updates: Partial<Tab>) => void;
 }
 
-export const SessionInfo: React.FC<SessionInfoProps> = ({ tab }) => {
+export const SessionInfo: React.FC<SessionInfoProps> = ({ tab, updateTab }) => {
   return (
     <div className="bg-white dark:bg-gray-900 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
       <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-3">
