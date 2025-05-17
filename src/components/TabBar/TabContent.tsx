@@ -1,5 +1,5 @@
 import React from "react";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { Tab, Profile, Page } from "./types";
 import { ProfileSection } from "./ProfileSection";
 import { PagesSection } from "./PagesSection";
@@ -31,10 +31,10 @@ export const TabContent: React.FC<TabContentProps> = ({
   pagesLoading,
   pagesError,
 }) => {
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-6">
       {/* Session Information */}
       <SessionInfo tab={tab} />
 
@@ -87,14 +87,8 @@ export const TabContent: React.FC<TabContentProps> = ({
       <AdminPanel
         pages={pages}
         onVisitPage={(page) =>
-          window.open(`https://facebook.com/${page.id}`, "_blank")
+          window.open(`https://facebook.com/${page.page_id}`, "_blank")
         }
-        onUpload={(page, file, hashtag) => {
-          toast({
-            title: "Upload",
-            description: `Uploading to ${page.name} with hashtag #${hashtag}`,
-          });
-        }}
       />
     </div>
   );

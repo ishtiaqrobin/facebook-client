@@ -13,4 +13,5 @@ export const ENDPOINTS = {
   user: `${API_BASE_URL}/user/`,
   userProfile: `${API_BASE_URL}/facebook/profile/`,
   userPages: `${API_BASE_URL}/facebook/pages/`,
+  createPost: `${API_BASE_URL}/facebook/create_post/`,
 };

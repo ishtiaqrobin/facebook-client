@@ -18,15 +18,11 @@ interface Profile {
 }
 
 interface Page {
-  id: string;
+  page_id: string;
   name: string;
-  access_token: string;
   category: string;
-  picture?: {
-    data: {
-      url: string;
-    };
-  };
+  category_id: string;
+  tasks: string;
 }
 
 const TabManager: React.FC = () => {
@@ -75,8 +71,8 @@ const TabManager: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Facebook Pages Data:", data.data);
-        setPages(data.data || []);
+        console.log("Facebook Pages Data:", data);
+        setPages(data || []);
         setPagesLoading(false);
       })
       .catch((err) => {

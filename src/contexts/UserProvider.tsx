@@ -37,6 +37,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (token) {
       try {
+        setLoading(true);
         // Fetch user profile
         const profileResponse = await fetch(ENDPOINTS.userProfile, {
           method: "GET",
@@ -50,7 +51,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           const profileData = await profileResponse.json();
           setUser(profileData);
         } else {
-          console.log("Error fetching user profile.");
+          console.error(
+            "Error fetching user profile:",
+            await profileResponse.text()
+          );
           setUser(null);
         }
       } catch (error) {
@@ -79,8 +83,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const error = urlParams.get("error");
 
     if (error) {
-      // Optional: toast error if you use toast
-      // toast.error(`Facebook login failed: ${error}`);
+      toast({
+        title: "Error",
+        description: `Facebook login failed: ${error}`,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -95,6 +102,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         document.cookie = `access_token=${accessToken}; path=/; Secure`;
         if (refreshToken)
           document.cookie = `refresh_token=${refreshToken}; path=/; Secure`;
+
+        // Fetch user data immediately after setting token
+        fetchUserData();
+
         // Remove token from URL for security
         window.history.replaceState(
           {},
@@ -103,7 +114,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         );
       } catch (e) {
         console.error("Invalid token received:", e);
-        // Optional: toast.error('Invalid token received');
+        toast({
+          title: "Error",
+          description: "Invalid token received",
+          variant: "destructive",
+        });
       }
     }
     if (redirectUrl) {
@@ -112,7 +127,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         redirectUrl || "https://www.facebook-poster.ezbitly.com"
       );
     }
-  }, [router]);
+  }, [router, toast]);
 
   const handleFacebookLogin = async () => {
     try {

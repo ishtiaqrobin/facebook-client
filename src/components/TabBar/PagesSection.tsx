@@ -1,5 +1,4 @@
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Page } from "./types";
 
 interface PagesSectionProps {
@@ -31,21 +30,23 @@ export const PagesSection: React.FC<PagesSectionProps> = ({
         <div className="space-y-4">
           {pages.map((page) => (
             <div
-              key={page.id}
+              key={page.page_id}
               className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
             >
-              <Avatar className="h-12 w-12 bg-gray-100 dark:bg-gray-700">
-                <AvatarImage src={page.picture?.data?.url} alt={page.name} />
-                <AvatarFallback>
+              <div className="h-12 w-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
                   {page.name ? page.name.charAt(0) : "?"}
-                </AvatarFallback>
-              </Avatar>
+                </span>
+              </div>
               <div>
                 <h6 className="font-medium text-gray-900 dark:text-gray-100">
                   {page.name}
                 </h6>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {page.category}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Tasks: {page.tasks}
                 </p>
               </div>
             </div>

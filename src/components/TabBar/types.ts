@@ -12,15 +12,11 @@ export interface Tab {
 }
 
 export interface Page {
-  id: string;
+  page_id: string;
   name: string;
-  access_token: string;
   category: string;
-  picture?: {
-    data: {
-      url: string;
-    };
-  };
+  category_id: string;
+  tasks: string;
 }
 
 export interface Profile {

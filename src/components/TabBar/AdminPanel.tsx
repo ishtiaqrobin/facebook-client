@@ -1,27 +1,71 @@
 import React, { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileImage, Hash, Link, Upload } from "lucide-react";
 import { Page } from "./types";
+import { ENDPOINTS } from "@/lib/utility/config/config";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdminPanelProps {
   pages: Page[];
   onVisitPage: (page: Page) => void;
-  onUpload: (page: Page, file: File | null, hashtag: string) => void;
 }
+
+// Backend API call utility
+const createPost = async ({
+  pageId,
+  file,
+  hashtag,
+}: {
+  pageId: string;
+  file: File | null;
+  hashtag: string;
+}) => {
+  const formData = new FormData();
+  formData.append("page_id", pageId);
+
+  if (file) {
+    if (file.type.startsWith("image/")) {
+      formData.append("image", file);
+    } else if (file.type.startsWith("video/")) {
+      formData.append("video", file);
+    }
+  }
+
+  // Convert hashtag string to array and send as JSON
+  const hashtagsArray = hashtag
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag);
+  formData.append("hashtag", JSON.stringify(hashtagsArray));
+
+  const response = await fetch(ENDPOINTS.createPost, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to create post");
+  }
+  return await response.json();
+};
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   pages,
   onVisitPage,
-  onUpload,
 }) => {
   // State for each page's file and hashtag
   const [pageStates, setPageStates] = useState<{
     [pageId: string]: { file: File | null; hashtag: string };
   }>(() =>
-    Object.fromEntries(pages.map((p) => [p.id, { file: null, hashtag: "" }]))
+    Object.fromEntries(
+      pages.map((p) => [p.page_id, { file: null, hashtag: "" }])
+    )
   );
 
   // Update state if pages change
@@ -29,11 +73,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setPageStates((prev) => {
       const newState = { ...prev };
       pages.forEach((p) => {
-        if (!newState[p.id]) newState[p.id] = { file: null, hashtag: "" };
+        if (!newState[p.page_id])
+          newState[p.page_id] = { file: null, hashtag: "" };
       });
       // Remove states for pages that no longer exist
       Object.keys(newState).forEach((id) => {
-        if (!pages.find((p) => p.id === id)) delete newState[id];
+        if (!pages.find((p) => p.page_id === id)) delete newState[id];
       });
       return newState;
     });
@@ -53,12 +98,31 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }));
   };
 
-  const handleUpload = (page: Page) => {
-    const { file, hashtag } = pageStates[page.id] || {};
-    onUpload(page, file, hashtag);
+  const { toast } = useToast();
+
+  const handleUpload = async (page: Page) => {
+    const { file, hashtag } = pageStates[page.page_id] || {};
+    try {
+      const result = await createPost({
+        pageId: page.page_id,
+        file,
+        hashtag,
+      });
+      toast({
+        title: "Post created!",
+        description: result.message || "Your post was successfully created.",
+      });
+    } catch (error: unknown) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to create post.",
+        variant: "destructive",
+      });
+    }
     setPageStates((prev) => ({
       ...prev,
-      [page.id]: { file: null, hashtag: "" },
+      [page.page_id]: { file: null, hashtag: "" },
     }));
   };
 
@@ -66,26 +130,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     <div className="space-y-6">
       {pages.map((page) => (
         <div
-          key={page.id}
+          key={page.page_id}
           className="flex flex-col md:flex-row bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden"
         >
           {/* Left: Page Info */}
           <div className="flex flex-col items-center md:items-start md:w-1/3 p-6 space-y-2 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
-            <Avatar className="h-16 w-16 bg-gray-100 dark:bg-gray-700 mb-2">
+            {/* <Avatar className="h-16 w-16 bg-gray-100 dark:bg-gray-700 mb-2">
               <AvatarImage src={page.picture?.data?.url} alt={page.name} />
               <AvatarFallback>
                 {page.name ? page.name.charAt(0) : "?"}
               </AvatarFallback>
-            </Avatar>
+            </Avatar> */}
             <div>
               <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 {page.name}
               </h4>
               <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
-                ID: {page.id}
+                ID: {page.page_id}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {page.category}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Tasks: {page.tasks}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg w-full mt-2">
@@ -110,14 +177,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               {/* File upload */}
               <div>
                 <Label
-                  htmlFor={`file-upload-${page.id}`}
+                  htmlFor={`file-upload-${page.page_id}`}
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                 >
                   Upload Media
                 </Label>
                 <div className="flex items-center">
                   <label
-                    htmlFor={`file-upload-${page.id}`}
+                    htmlFor={`file-upload-${page.page_id}`}
                     className={`flex items-center justify-center w-full h-32 px-4 transition bg-white dark:bg-gray-800 
                       border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md appearance-none 
                       hover:border-[#1877F2] focus:outline-none cursor-pointer`}
@@ -128,18 +195,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         className="text-gray-500 dark:text-gray-400"
                       />
                       <span className="font-medium text-gray-600 dark:text-gray-300">
-                        {pageStates[page.id]?.file
-                          ? pageStates[page.id].file!.name
+                        {pageStates[page.page_id]?.file
+                          ? pageStates[page.page_id].file!.name
                           : "Click to select a file"}
                       </span>
                     </span>
                     <input
-                      id={`file-upload-${page.id}`}
+                      id={`file-upload-${page.page_id}`}
                       name="file_upload"
                       type="file"
                       className="hidden"
                       onChange={(e) =>
-                        handleFileChange(page.id, e.target.files?.[0] || null)
+                        handleFileChange(
+                          page.page_id,
+                          e.target.files?.[0] || null
+                        )
                       }
                       accept="image/*,video/*"
                     />
@@ -153,25 +223,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               {/* Hashtag input */}
               <div>
                 <Label
-                  htmlFor={`hashtag-${page.id}`}
+                  htmlFor={`hashtag-${page.page_id}`}
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                 >
-                  Hashtag
+                  Hashtags (comma separated)
                 </Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash size={18} className="text-gray-400" />
                   </div>
                   <Input
-                    id={`hashtag-${page.id}`}
-                    placeholder="Enter hashtag without # symbol"
+                    id={`hashtag-${page.page_id}`}
+                    placeholder="Enter hashtags separated by commas (e.g. tag1, tag2)"
                     className="pl-10"
-                    value={pageStates[page.id]?.hashtag || ""}
+                    value={pageStates[page.page_id]?.hashtag || ""}
                     onChange={(e) =>
-                      handleHashtagChange(page.id, e.target.value)
+                      handleHashtagChange(page.page_id, e.target.value)
                     }
                   />
                 </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Enter multiple hashtags separated by commas
+                </p>
                 <div className="flex items-center space-x-4 mt-4">
                   <Button
                     variant="outline"
@@ -184,7 +257,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <Button
                     className="bg-[#1877F2] hover:bg-[#145db2] text-white flex items-center gap-2"
                     onClick={() => handleUpload(page)}
-                    disabled={!pageStates[page.id]?.file}
+                    disabled={!pageStates[page.page_id]?.file}
                   >
                     <Upload size={18} />
                     Upload Post
