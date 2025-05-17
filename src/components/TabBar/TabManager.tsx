@@ -201,11 +201,11 @@ const TabManager: React.FC = () => {
   };
 
   // Update tab data
-  const updateTab = (id: string, updates: Partial<Tab>) => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) => (tab.id === id ? { ...tab, ...updates } : tab))
-    );
-  };
+  // const updateTab = (id: string, updates: Partial<Tab>) => {
+  //   setTabs((prevTabs) =>
+  //     prevTabs.map((tab) => (tab.id === id ? { ...tab, ...updates } : tab))
+  //   );
+  // };
 
   // Toggle dark mode
   const toggleDarkMode = () => {
@@ -240,7 +240,6 @@ const TabManager: React.FC = () => {
         {getActiveTab() ? (
           <TabContent
             tab={getActiveTab()!}
-            updateTab={updateTab}
             onLogin={handleFacebookLogin}
             onLogout={logout}
             profile={profile}

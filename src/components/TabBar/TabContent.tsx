@@ -10,7 +10,6 @@ import { Facebook } from "lucide-react";
 
 interface TabContentProps {
   tab: Tab;
-  updateTab: (id: string, updates: Partial<Tab>) => void;
   onLogin: () => void;
   onLogout: () => void;
   profile: Profile | null;
@@ -23,7 +22,6 @@ interface TabContentProps {
 
 export const TabContent: React.FC<TabContentProps> = ({
   tab,
-  updateTab,
   onLogin,
   onLogout,
   profile,
@@ -38,7 +36,7 @@ export const TabContent: React.FC<TabContentProps> = ({
   return (
     <div className="space-y-1">
       {/* Session Information */}
-      <SessionInfo tab={tab} updateTab={updateTab} />
+      <SessionInfo tab={tab} />
 
       {/* Facebook Login Button */}
       <div className="flex justify-center py-5">

@@ -260,7 +260,6 @@ const TabBar: React.FC = () => {
         {getActiveTab() ? (
           <TabContent
             tab={getActiveTab()!}
-            updateTab={updateTab}
             onLogin={handleLogin}
             onLogout={handleLogout}
             profile={profile}
