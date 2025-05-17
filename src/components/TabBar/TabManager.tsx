@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { TabContent, Tab } from "../TabBar";
+import { TabContent } from "./TabContent";
+import { Tab } from "./types";
 import TabHeader from "./TabHeader";
 import DarkModeToggle from "./DarkModeToggle";
 import { useUser } from "@/hooks/useUser";
@@ -74,6 +75,7 @@ const TabManager: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
+        console.log("Facebook Pages Data:", data.data);
         setPages(data.data || []);
         setPagesLoading(false);
       })
@@ -93,7 +95,10 @@ const TabManager: React.FC = () => {
 
     if (darkModePreference === "dark") {
       setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add("dark-mode");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark-mode");
     }
 
     if (savedTabs) {
@@ -208,16 +213,16 @@ const TabManager: React.FC = () => {
     setIsDarkMode(newMode);
 
     if (newMode) {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add("dark-mode");
       localStorage.setItem("facebook-auto-poster-darkmode", "dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("dark-mode");
       localStorage.setItem("facebook-auto-poster-darkmode", "light");
     }
   };
 
   return (
-    <div className={`flex flex-col w-full ${isDarkMode ? "dark" : ""}`}>
+    <div className={`flex flex-col w-full ${isDarkMode ? "dark-mode" : ""}`}>
       {/* Dark Mode Toggle */}
       <DarkModeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 

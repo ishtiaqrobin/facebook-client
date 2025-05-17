@@ -1,7 +1,7 @@
 import animate from "tailwindcss-animate";
 
 const config = {
-    darkMode: ["class"],
+    darkMode: ["class", ".dark-mode"],
     content: [
         "./pages/**/*.{ts,tsx}",
         "./components/**/*.{ts,tsx}",

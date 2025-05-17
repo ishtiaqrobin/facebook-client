@@ -1,0 +1,61 @@
+import React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Page } from "./types";
+
+interface PagesSectionProps {
+  pages: Page[];
+  pagesLoading: boolean;
+  pagesError: string | null;
+}
+
+export const PagesSection: React.FC<PagesSectionProps> = ({
+  pages,
+  pagesLoading,
+  pagesError,
+}) => {
+  console.log("Pages in PagesSection:", pages);
+
+  return (
+    <div className="space-y-4">
+      <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200">
+        Pages
+      </h4>
+      {pagesLoading ? (
+        <div className="animate-pulse space-y-4">
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      ) : pagesError ? (
+        <div className="text-red-500 dark:text-red-400">{pagesError}</div>
+      ) : pages.length > 0 ? (
+        <div className="space-y-4">
+          {pages.map((page) => (
+            <div
+              key={page.id}
+              className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={page.picture?.data?.url} alt={page.name} />
+                <AvatarFallback>
+                  {page.name ? page.name.charAt(0) : "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h6 className="font-medium text-gray-900 dark:text-gray-100">
+                  {page.name}
+                </h6>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {page.category}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-gray-500 dark:text-gray-400">
+          No pages available
+        </div>
+      )}
+    </div>
+  );
+};

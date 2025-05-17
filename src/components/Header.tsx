@@ -37,7 +37,8 @@ const Header: React.FC = () => {
           </a>
         </nav>
 
-        <div className="flex items-center space-x-4 pr-16">
+        {/* Chrome is not supported this padding right*/}
+        <div className="hidden md:flex items-center space-x-4 pr-0 md:pr-16">
           <button className="px-4 py-2 bg-[#1877F2] text-white rounded-md hover:bg-[#145db2] transition-colors cursor-pointer">
             Connect
           </button>

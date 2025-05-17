@@ -1,6 +1,6 @@
 import React from "react";
 import { Plus, X } from "lucide-react";
-import { Tab } from "../TabBar";
+import { Tab } from "./types";
 
 interface TabHeaderProps {
   tabs: Tab[];
