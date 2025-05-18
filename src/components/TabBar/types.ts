@@ -17,6 +17,12 @@ export interface Page {
   category: string;
   category_id: string;
   tasks: string;
+  access_token: string;
+  picture?: {
+    data: {
+      url: string;
+    };
+  };
 }
 
 export interface Profile {

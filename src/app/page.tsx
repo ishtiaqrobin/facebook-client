@@ -54,7 +54,10 @@ export default function Home() {
                 isDarkMode ? "text-gray-300" : "text-gray-500"
               }`}
             >
-              Manage your Facebook access tokens for auto-posting
+              {/* Manage your Facebook access tokens for auto-posting */}
+              <span className="text-red-500">
+                Last Updated: 18/05/2025 7:27 PM
+              </span>
             </p>
           </div>
 

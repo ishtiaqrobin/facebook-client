@@ -7,14 +7,16 @@ const Help = () => {
 
       <div className="space-y-6 text-gray-700">
         <section>
-          <h2 className="text-2xl font-semibold mb-3">Introduction</h2>
+          <h2 className="text-2xl font-semibold mb-3">
+            Last Updated: 18/05/2025 3:00 PM
+          </h2>
           <p>
             This Privacy Policy describes how Facebook Auto Poster handles your
             personal information when you use our application. This is a
             personal project designed for individual use.
           </p>
         </section>
-
+        {/* 
         <section>
           <h2 className="text-2xl font-semibold mb-3">
             Information We Collect
@@ -78,7 +80,7 @@ const Help = () => {
             This privacy policy may be updated from time to time. Any changes
             will be reflected on this page.
           </p>
-        </section>
+        </section> */}
       </div>
     </div>
   );

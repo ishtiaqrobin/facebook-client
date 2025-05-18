@@ -23,6 +23,12 @@ interface Page {
   category: string;
   category_id: string;
   tasks: string;
+  access_token: string;
+  picture?: {
+    data: {
+      url: string;
+    };
+  };
 }
 
 const TabManager: React.FC = () => {
@@ -45,15 +51,15 @@ const TabManager: React.FC = () => {
 
   // Fetch profile and pages data when active tab changes
   useEffect(() => {
-    const activeTab = getActiveTab();
-    if (!activeTab?.token) return;
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) return;
 
     setProfileLoading(true);
     setPagesLoading(true);
 
     // Fetch profile
     fetch(`${ENDPOINTS.userProfile}`, {
-      headers: { Authorization: `Bearer ${activeTab.token}` },
+      headers: { Authorization: `Bearer ${accessToken}` },
     })
       .then((res) => res.json())
       .then((data) => {
@@ -67,19 +73,19 @@ const TabManager: React.FC = () => {
 
     // Fetch pages
     fetch(`${ENDPOINTS.userPages}`, {
-      headers: { Authorization: `Bearer ${activeTab.token}` },
+      headers: { Authorization: `Bearer ${accessToken}` },
     })
       .then((res) => res.json())
       .then((data) => {
         console.log("Facebook Pages Data:", data);
-        setPages(data || []);
+        setPages(data.data || []);
         setPagesLoading(false);
       })
       .catch((err) => {
         setPagesError(err.message);
         setPagesLoading(false);
       });
-  }, [activeTabId, getActiveTab]);
+  }, []);
 
   // Initialize tabs from sessionStorage on component mount
   useEffect(() => {

@@ -41,6 +41,19 @@ const createPost = async ({
     .filter((tag) => tag);
   formData.append("hashtag", JSON.stringify(hashtagsArray));
 
+  // Log data before API call
+  console.log("Sending data:", {
+    page_id: pageId,
+    hashtag: hashtagsArray,
+    file: file
+      ? {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        }
+      : null,
+  });
+
   const response = await fetch(ENDPOINTS.createPost, {
     method: "POST",
     headers: {
@@ -48,6 +61,9 @@ const createPost = async ({
     },
     body: formData,
   });
+
+  console.log(response, "response from create post");
+  console.log(formData, "from data from create post");
 
   if (!response.ok) {
     throw new Error("Failed to create post");

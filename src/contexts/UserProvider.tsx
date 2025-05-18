@@ -118,11 +118,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [toast]);
 
+  // Initial user data fetch
   useEffect(() => {
     fetchUserData();
-  }, [fetchUserData]);
+  }, []); // Empty dependency array since we only want to fetch on mount
 
-  // Facebook login callback & token management (global)
+  // Facebook login callback & token management
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
@@ -177,7 +178,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         redirectUrl || "https://www.facebook-poster.ezbitly.com"
       );
     }
-  }, [router, toast, fetchUserData]);
+  }, [toast]); // Remove fetchUserData from dependencies
 
   const handleFacebookLogin = async () => {
     try {
