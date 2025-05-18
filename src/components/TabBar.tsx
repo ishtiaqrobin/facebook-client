@@ -82,8 +82,12 @@ const TabBar: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setPages(data.data || []);
+        console.log("[TabBar] Facebook Pages Data (raw):", data);
+        setPages(Array.isArray(data) ? data : []);
         setPagesLoading(false);
+        setTimeout(() => {
+          console.log("[TabBar] Pages state after setPages:", pages);
+        }, 1000);
       })
       .catch((err) => {
         setPagesError(`Failed to load pages: ${err.message}`);
