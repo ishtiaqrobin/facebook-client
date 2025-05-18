@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { ENDPOINTS } from "@/lib/utility/config/config";
@@ -22,6 +28,7 @@ interface UserContextType {
     accessToken: string,
     refreshToken: string
   ) => Promise<void>;
+  refreshToken: () => Promise<boolean>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -32,45 +39,88 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { toast } = useToast();
 
-  const fetchUserData = async () => {
-    const token = localStorage.getItem("access_token");
+  const refreshToken = async (): Promise<boolean> => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (!refreshToken) return false;
 
-    if (token) {
-      try {
-        setLoading(true);
-        // Fetch user profile
-        const profileResponse = await fetch(ENDPOINTS.userProfile, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    try {
+      const response = await fetch(ENDPOINTS.tokenRefresh, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
 
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          setUser(profileData);
-        } else {
-          console.error(
-            "Error fetching user profile:",
-            await profileResponse.text()
-          );
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("access_token", data.access);
+        document.cookie = `access_token=${data.access}; path=/; Secure`;
+        return true;
       }
-    } else {
-      setLoading(false);
+      return false;
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      return false;
     }
   };
 
+  const fetchUserData = useCallback(async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const profileResponse = await fetch(ENDPOINTS.userProfile, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        setUser(profileData);
+      } else if (profileResponse.status === 401) {
+        const refreshSuccess = await refreshToken();
+        if (refreshSuccess) {
+          await fetchUserData();
+        } else {
+          localStorage.clear();
+          document.cookie =
+            "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+          document.cookie =
+            "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+          setUser(null);
+          toast({
+            title: "Session Expired",
+            description: "Please login again to continue",
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.error(
+          "Error fetching user profile:",
+          await profileResponse.text()
+        );
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [fetchUserData]);
 
   // Facebook login callback & token management (global)
   useEffect(() => {
@@ -127,7 +177,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         redirectUrl || "https://www.facebook-poster.ezbitly.com"
       );
     }
-  }, [router, toast]);
+  }, [router, toast, fetchUserData]);
 
   const handleFacebookLogin = async () => {
     try {
@@ -257,6 +307,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         fetchUserData,
         handleFacebookLogin,
         handleFacebookCallback,
+        refreshToken,
       }}
     >
       {children}

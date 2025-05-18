@@ -42,7 +42,7 @@ export const TabContent: React.FC<TabContentProps> = ({
       <div className="flex justify-center py-5">
         {!tab.isLoggedIn ? (
           <Button
-            className="bg-[#1877F2] hover:bg-[#145db2] text-white font-bold py-2 px-6 rounded-md flex items-center gap-2"
+            className="bg-[#1877F2] hover:bg-[#145db2] text-white font-bold py-2 px-6 rounded-md flex items-center gap-2 cursor-pointer"
             onClick={onLogin}
           >
             <Facebook size={20} />
@@ -51,7 +51,7 @@ export const TabContent: React.FC<TabContentProps> = ({
         ) : (
           <Button
             variant="outline"
-            className="text-[#1877F2] dark:text-[#e7f3ff] border-[#1877F2] dark:border-[#e7f3ff] hover:bg-[#e7f3ff] dark:hover:bg-[#145db2] font-bold py-2 px-6 rounded-md"
+            className="text-[#1877F2] dark:text-[#e7f3ff] border-[#1877F2] dark:border-[#e7f3ff] hover:bg-[#e7f3ff] dark:hover:bg-[#145db2] font-bold py-2 px-6 rounded-md cursor-pointer"
             onClick={onLogout}
           >
             Logout from Facebook

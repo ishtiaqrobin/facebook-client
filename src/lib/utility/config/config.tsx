@@ -4,6 +4,7 @@ export const API_BASE_URL =
 export const ENDPOINTS = {
   // Authentication & Registration
   logout: `${API_BASE_URL}/logout/`,
+  tokenRefresh: `${API_BASE_URL}/token/refresh/`,
 
   // Facebook Login & User Data
   facebookLogin: `${API_BASE_URL}/facebook/login/`,
