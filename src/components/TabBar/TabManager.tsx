@@ -77,15 +77,18 @@ const TabManager: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Facebook Pages Data:", data);
-        setPages(data || []);
+        console.log("Facebook Pages Data (raw):", data);
+        setPages(Array.isArray(data) ? data : []);
         setPagesLoading(false);
+        setTimeout(() => {
+          console.log("Pages state after setPages:", pages);
+        }, 1000);
       })
       .catch((err) => {
         setPagesError(err.message);
         setPagesLoading(false);
       });
-  }, []);
+  }, [pages]);
 
   // Initialize tabs from sessionStorage on component mount
   useEffect(() => {
