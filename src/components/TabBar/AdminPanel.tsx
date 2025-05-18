@@ -16,15 +16,18 @@ interface AdminPanelProps {
 // Backend API call utility
 const createPost = async ({
   pageId,
+  pageAccessToken,
   file,
   hashtag,
 }: {
   pageId: string;
+  pageAccessToken: string;
   file: File | null;
   hashtag: string;
 }) => {
   const formData = new FormData();
   formData.append("page_id", pageId);
+  formData.append("page_access_token", pageAccessToken);
 
   if (file) {
     if (file.type.startsWith("image/")) {
@@ -121,6 +124,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     try {
       const result = await createPost({
         pageId: page.page_id,
+        pageAccessToken: page.access_token,
         file,
         hashtag,
       });
