@@ -78,7 +78,7 @@ const TabManager: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Facebook Pages Data:", data);
-        setPages(data.data || []);
+        setPages(data || []);
         setPagesLoading(false);
       })
       .catch((err) => {
