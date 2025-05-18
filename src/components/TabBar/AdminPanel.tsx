@@ -161,14 +161,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 {page.name}
               </h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
-                ID: {page.page_id}
-              </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {page.category}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Tasks: {page.tasks}
+              <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
+                ID: {page.page_id}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg w-full mt-2">

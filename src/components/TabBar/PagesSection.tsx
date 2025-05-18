@@ -46,7 +46,7 @@ export const PagesSection: React.FC<PagesSectionProps> = ({
                   {page.category}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Tasks: {page.tasks}
+                  ID: {page.page_id}
                 </p>
               </div>
             </div>
