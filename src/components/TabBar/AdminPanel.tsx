@@ -271,7 +271,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <Button
                     className="bg-[#1877F2] hover:bg-[#145db2] text-white flex items-center gap-2"
                     onClick={() => handleUpload(page)}
-                    disabled={!pageStates[page.page_id]?.file}
+                    disabled={
+                      !pageStates[page.page_id]?.file ||
+                      !pageStates[page.page_id]?.hashtag ||
+                      pageStates[page.page_id]?.hashtag
+                        .split(",")
+                        .map((tag) => tag.trim())
+                        .filter((tag) => tag).length === 0
+                    }
                   >
                     <Upload size={18} />
                     Upload Post
