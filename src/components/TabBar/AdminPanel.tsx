@@ -151,7 +151,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           className="flex flex-col md:flex-row bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden"
         >
           {/* Left: Page Info */}
-          <div className="flex flex-col items-center md:items-start md:w-1/3 p-6 space-y-2 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center md:w-1/3 p-6 space-y-2 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
             {/* <Avatar className="h-16 w-16 bg-gray-100 dark:bg-gray-700 mb-2">
               <AvatarImage src={page.picture?.data?.url} alt={page.name} />
               <AvatarFallback>
@@ -169,6 +169,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 ID: {page.page_id}
               </p>
             </div>
+
             <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg w-full mt-2">
               <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Account Status
