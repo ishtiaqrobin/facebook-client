@@ -23,6 +23,11 @@ const createPost = async ({
   file: File | null;
   hashtag: string;
 }) => {
+  const hashtagsArray = hashtag
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag);
+
   const formData = new FormData();
   formData.append("page_id", pageId);
 
@@ -34,12 +39,8 @@ const createPost = async ({
     }
   }
 
-  // Convert hashtag string to array and send as JSON
-  const hashtagsArray = hashtag
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag);
-  formData.append("hashtag", JSON.stringify(hashtagsArray));
+  // এখানে প্রতিটা tag আলাদা করে append করো
+  hashtagsArray.forEach((tag) => formData.append("hashtag", tag));
 
   // Log data before API call
   console.log("Sending data:", {
