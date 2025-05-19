@@ -89,7 +89,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   return (
     <div className="space-y-6">
-      {pages.map((page) => (
+      {[...new Map(pages.map((p) => [p.page_id, p])).values()].map((page) => (
         <div
           key={page.page_id}
           className="flex flex-col md:flex-row bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden"

@@ -79,10 +79,84 @@ const TabBar: React.FC = () => {
     };
   };
 
+  // Helper functions for sessionStorage keys
+  const getTokenKey = (id: string) => `fb_token_${id}`;
+  const getProfileKey = (id: string) => `fb_profile_${id}`;
+  const getPagesKey = (id: string) => `fb_pages_${id}`;
+
+  // Update tab state and sessionStorage for token/profile/pages
+  const updateTab = (id: string, updates: Partial<Tab>) => {
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) => {
+        if (tab.id === id) {
+          // Store session-specific data in sessionStorage
+          if (updates.token !== undefined) {
+            if (updates.token) {
+              sessionStorage.setItem(getTokenKey(id), updates.token);
+            } else {
+              sessionStorage.removeItem(getTokenKey(id));
+            }
+          }
+          if (updates.profile !== undefined) {
+            if (updates.profile) {
+              sessionStorage.setItem(
+                getProfileKey(id),
+                JSON.stringify(updates.profile)
+              );
+            } else {
+              sessionStorage.removeItem(getProfileKey(id));
+            }
+          }
+          if (updates.pages !== undefined) {
+            if (updates.pages) {
+              sessionStorage.setItem(
+                getPagesKey(id),
+                JSON.stringify(updates.pages)
+              );
+            } else {
+              sessionStorage.removeItem(getPagesKey(id));
+            }
+          }
+          return { ...tab, ...updates };
+        }
+        return tab;
+      })
+    );
+  };
+
+  // When switching tabs, load session-specific data
+  useEffect(() => {
+    const activeTab = getActiveTab();
+    if (!activeTab) return;
+    // Load token/profile/pages from sessionStorage
+    const token = sessionStorage.getItem(getTokenKey(activeTab.id)) || "";
+    const profileStr = sessionStorage.getItem(getProfileKey(activeTab.id));
+    const pagesStr = sessionStorage.getItem(getPagesKey(activeTab.id));
+    const profile = profileStr ? JSON.parse(profileStr) : null;
+    const pages = pagesStr ? JSON.parse(pagesStr) : [];
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTab.id
+          ? {
+              ...tab,
+              token,
+              profile,
+              pages,
+              isLoggedIn: !!token,
+            }
+          : tab
+      )
+    );
+  }, [activeTabId]);
+
+  // When adding a new tab, ensure it starts empty (no token/profile/pages)
   const addTab = () => {
     const newTabNumber = tabs.length + 1;
     const newTab = createNewTab(`Session ${newTabNumber}`);
-
+    // Remove any sessionStorage data for this new tab id (shouldn't exist, but for safety)
+    sessionStorage.removeItem(getTokenKey(newTab.id));
+    sessionStorage.removeItem(getProfileKey(newTab.id));
+    sessionStorage.removeItem(getPagesKey(newTab.id));
     setTabs((prevTabs) => {
       const updatedTabs = prevTabs.map((tab) => ({
         ...tab,
@@ -90,18 +164,19 @@ const TabBar: React.FC = () => {
       }));
       return [...updatedTabs, newTab];
     });
-
     setActiveTabId(newTab.id);
-
     toast({
       title: "New session created",
       description: `Session ${newTabNumber} has been added.`,
     });
   };
 
+  // When removing a tab, clear its sessionStorage data
   const removeTab = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-
+    sessionStorage.removeItem(getTokenKey(id));
+    sessionStorage.removeItem(getProfileKey(id));
+    sessionStorage.removeItem(getPagesKey(id));
     if (id === activeTabId) {
       const currentIndex = tabs.findIndex((tab) => tab.id === id);
       if (tabs.length > 1) {
@@ -124,101 +199,82 @@ const TabBar: React.FC = () => {
     setActiveTabId(id);
   };
 
-  const updateTab = (id: string, updates: Partial<Tab>) => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) => (tab.id === id ? { ...tab, ...updates } : tab))
-    );
-  };
-
   const getActiveTab = () => {
     return tabs.find((tab) => tab.id === activeTabId) || null;
   };
 
   // Session-specific Facebook login
   const handleLogin = async () => {
-    // শুধু Facebook OAuth flow initiate করো
-    await handleFacebookLogin();
-    // বাকিটা OAuth flow complete হলে হবে
-  };
-
-  // Token change detect করে profile/pages fetch
-  useEffect(() => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
-    if (!activeTab.isLoggedIn) {
-      // Check if token is available in localStorage
-      const accessToken = localStorage.getItem("access_token");
-      if (accessToken) {
-        updateTab(activeTab.id, {
-          isLoggedIn: true,
-          token: accessToken,
-          profileLoading: true,
-          profileError: null,
-        });
-      } else {
-        return;
-      }
+    try {
+      // Initiate Facebook OAuth login flow
+      await handleFacebookLogin();
+      // After OAuth, token should be available in sessionStorage for this tab
+      const accessToken = sessionStorage.getItem(getTokenKey(activeTab.id));
+      if (!accessToken) throw new Error("No access token found after login");
+      updateTab(activeTab.id, {
+        isLoggedIn: true,
+        token: accessToken,
+        profileLoading: true,
+        profileError: null,
+      });
+      // Fetch profile
+      const profileRes = await fetch(ENDPOINTS.userProfile, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!profileRes.ok) throw new Error("Failed to fetch profile");
+      const profileData = await profileRes.json();
+      updateTab(activeTab.id, {
+        profile: profileData,
+        profileLoading: false,
+        profileError: null,
+      });
+      // Fetch pages
+      updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
+      const pagesRes = await fetch(ENDPOINTS.userPages, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!pagesRes.ok) throw new Error("Failed to fetch pages");
+      const pagesData = await pagesRes.json();
+      updateTab(activeTab.id, {
+        pages: Array.isArray(pagesData) ? pagesData : [],
+        pagesLoading: false,
+        pagesError: null,
+      });
+      toast({
+        title: "Login successful",
+        description: "You have successfully logged in with Facebook.",
+      });
+    } catch (error: unknown) {
+      updateTab(activeTab.id, {
+        isLoggedIn: false,
+        token: "",
+        profile: null,
+        profileLoading: false,
+        profileError:
+          error instanceof Error ? error.message : "Failed to login",
+        pages: [],
+        pagesLoading: false,
+        pagesError:
+          error instanceof Error ? error.message : "Failed to fetch pages",
+      });
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Failed to login",
+        variant: "destructive",
+      });
     }
-    // If already logged in and token exists, fetch profile/pages
-    if (activeTab.isLoggedIn && activeTab.token) {
-      (async () => {
-        try {
-          // Fetch profile
-          const profileRes = await fetch(ENDPOINTS.userProfile, {
-            headers: { Authorization: `Bearer ${activeTab.token}` },
-          });
-          if (!profileRes.ok) throw new Error("Failed to fetch profile");
-          const profileData = await profileRes.json();
-          updateTab(activeTab.id, {
-            profile: profileData,
-            profileLoading: false,
-            profileError: null,
-          });
-          // Fetch pages
-          updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
-          const pagesRes = await fetch(ENDPOINTS.userPages, {
-            headers: { Authorization: `Bearer ${activeTab.token}` },
-          });
-          if (!pagesRes.ok) throw new Error("Failed to fetch pages");
-          const pagesData = await pagesRes.json();
-          updateTab(activeTab.id, {
-            pages: Array.isArray(pagesData) ? pagesData : [],
-            pagesLoading: false,
-            pagesError: null,
-          });
-          toast({
-            title: "Login successful",
-            description: "You have successfully logged in with Facebook.",
-          });
-        } catch (error: unknown) {
-          updateTab(activeTab.id, {
-            isLoggedIn: false,
-            token: "",
-            profile: null,
-            profileLoading: false,
-            profileError:
-              error instanceof Error ? error.message : "Failed to login",
-            pages: [],
-            pagesLoading: false,
-            pagesError:
-              error instanceof Error ? error.message : "Failed to fetch pages",
-          });
-          toast({
-            title: "Login failed",
-            description:
-              error instanceof Error ? error.message : "Failed to login",
-            variant: "destructive",
-          });
-        }
-      })();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTabId, getActiveTab()?.token]);
+  };
 
   // Session-specific Facebook logout
   const handleLogout = () => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
+    // Clear only this tab's sessionStorage data
+    sessionStorage.removeItem(getTokenKey(activeTab.id));
+    sessionStorage.removeItem(getProfileKey(activeTab.id));
+    sessionStorage.removeItem(getPagesKey(activeTab.id));
     updateTab(activeTab.id, {
       isLoggedIn: false,
       token: "",

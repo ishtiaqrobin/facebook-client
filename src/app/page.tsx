@@ -58,7 +58,7 @@ export default function Home() {
             >
               {/* Manage your Facebook access tokens for auto-posting */}
               Last Updated:
-              <span className="text-red-500">19/05/2025 10:30 PM</span>
+              <span className="text-red-500">19/05/2025 11:16 PM</span>
             </p>
           </div>
 
