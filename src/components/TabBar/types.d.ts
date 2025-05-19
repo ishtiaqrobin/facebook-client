@@ -16,7 +16,6 @@ export interface Page {
   name: string;
   category: string;
   category_id: string;
-  tasks: string;
   access_token: string;
   picture?: {
     data: {
