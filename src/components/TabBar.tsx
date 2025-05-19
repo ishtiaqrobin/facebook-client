@@ -6,12 +6,14 @@ import TabHeader from "./TabBar/TabHeader";
 import { TabContent } from "./TabBar/TabContent";
 import { AdminPanel } from "./TabBar/AdminPanel";
 import { Tab, Page } from "./TabBar/types";
+import { useUser } from "@/hooks/useUser";
 
 const TabBar: React.FC = () => {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const { toast } = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { handleFacebookLogin } = useUser();
 
   // Initialize tabs from sessionStorage on component mount
   useEffect(() => {
@@ -134,70 +136,84 @@ const TabBar: React.FC = () => {
 
   // Session-specific Facebook login
   const handleLogin = async () => {
+    // শুধু Facebook OAuth flow initiate করো
+    await handleFacebookLogin();
+    // বাকিটা OAuth flow complete হলে হবে
+  };
+
+  // Token change detect করে profile/pages fetch
+  useEffect(() => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
-    try {
-      // Facebook OAuth login flow
-      // (Assume you have a function to trigger Facebook login and store token in localStorage)
-      // await handleFacebookLogin();
-
-      // Get real access token from localStorage
+    if (!activeTab.isLoggedIn) {
+      // Check if token is available in localStorage
       const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) throw new Error("No access token found after login");
-
-      updateTab(activeTab.id, {
-        isLoggedIn: true,
-        token: accessToken,
-        profileLoading: true,
-        profileError: null,
-      });
-      // Fetch profile
-      const profileRes = await fetch(ENDPOINTS.userProfile, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!profileRes.ok) throw new Error("Failed to fetch profile");
-      const profileData = await profileRes.json();
-      updateTab(activeTab.id, {
-        profile: profileData,
-        profileLoading: false,
-        profileError: null,
-      });
-      // Fetch pages
-      updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
-      const pagesRes = await fetch(ENDPOINTS.userPages, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!pagesRes.ok) throw new Error("Failed to fetch pages");
-      const pagesData = await pagesRes.json();
-      updateTab(activeTab.id, {
-        pages: Array.isArray(pagesData) ? pagesData : [],
-        pagesLoading: false,
-        pagesError: null,
-      });
-      toast({
-        title: "Login successful",
-        description: "You have successfully logged in with Facebook.",
-      });
-    } catch (error: unknown) {
-      updateTab(activeTab.id, {
-        isLoggedIn: false,
-        token: "",
-        profile: null,
-        profileLoading: false,
-        profileError:
-          error instanceof Error ? error.message : "Failed to login",
-        pages: [],
-        pagesLoading: false,
-        pagesError:
-          error instanceof Error ? error.message : "Failed to fetch pages",
-      });
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Failed to login",
-        variant: "destructive",
-      });
+      if (accessToken) {
+        updateTab(activeTab.id, {
+          isLoggedIn: true,
+          token: accessToken,
+          profileLoading: true,
+          profileError: null,
+        });
+      } else {
+        return;
+      }
     }
-  };
+    // If already logged in and token exists, fetch profile/pages
+    if (activeTab.isLoggedIn && activeTab.token) {
+      (async () => {
+        try {
+          // Fetch profile
+          const profileRes = await fetch(ENDPOINTS.userProfile, {
+            headers: { Authorization: `Bearer ${activeTab.token}` },
+          });
+          if (!profileRes.ok) throw new Error("Failed to fetch profile");
+          const profileData = await profileRes.json();
+          updateTab(activeTab.id, {
+            profile: profileData,
+            profileLoading: false,
+            profileError: null,
+          });
+          // Fetch pages
+          updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
+          const pagesRes = await fetch(ENDPOINTS.userPages, {
+            headers: { Authorization: `Bearer ${activeTab.token}` },
+          });
+          if (!pagesRes.ok) throw new Error("Failed to fetch pages");
+          const pagesData = await pagesRes.json();
+          updateTab(activeTab.id, {
+            pages: Array.isArray(pagesData) ? pagesData : [],
+            pagesLoading: false,
+            pagesError: null,
+          });
+          toast({
+            title: "Login successful",
+            description: "You have successfully logged in with Facebook.",
+          });
+        } catch (error: unknown) {
+          updateTab(activeTab.id, {
+            isLoggedIn: false,
+            token: "",
+            profile: null,
+            profileLoading: false,
+            profileError:
+              error instanceof Error ? error.message : "Failed to login",
+            pages: [],
+            pagesLoading: false,
+            pagesError:
+              error instanceof Error ? error.message : "Failed to fetch pages",
+          });
+          toast({
+            title: "Login failed",
+            description:
+              error instanceof Error ? error.message : "Failed to login",
+            variant: "destructive",
+          });
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabId, getActiveTab()?.token]);
 
   // Session-specific Facebook logout
   const handleLogout = () => {
