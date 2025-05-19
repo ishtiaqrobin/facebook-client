@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "../hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/useUser";
 import { ENDPOINTS } from "@/lib/utility/config/config";
 import TabHeader from "./TabBar/TabHeader";
 import { TabContent } from "./TabBar/TabContent";
-import { Tab, Profile, Page } from "./TabBar/types";
+import { AdminPanel } from "./TabBar/AdminPanel";
+import { Tab, Page } from "./TabBar/types";
 
 const TabBar: React.FC = () => {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const { toast } = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const { handleFacebookLogin, logout } = useUser();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [pages, setPages] = useState<Page[]>([]);
-  const [pagesLoading, setPagesLoading] = useState(false);
-  const [pagesError, setPagesError] = useState<string | null>(null);
 
   // Initialize tabs from sessionStorage on component mount
   useEffect(() => {
@@ -49,52 +42,6 @@ const TabBar: React.FC = () => {
     }
   }, []);
 
-  // Fetch profile and pages when accessToken is available
-  useEffect(() => {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) return;
-
-    // Fetch profile
-    setProfileLoading(true);
-    setProfileError(null);
-    fetch(`${ENDPOINTS.userProfile}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setProfile(data);
-        setProfileLoading(false);
-      })
-      .catch((err) => {
-        setProfileError(`Failed to load profile: ${err.message}`);
-        setProfileLoading(false);
-      });
-
-    // Fetch pages
-    setPagesLoading(true);
-    setPagesError(null);
-    fetch(`${ENDPOINTS.userPages}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("[TabBar] Facebook Pages Data (raw):", data);
-        setPages(Array.isArray(data) ? data : []);
-        setPagesLoading(false);
-        setTimeout(() => {
-          console.log("[TabBar] Pages state after setPages:", pages);
-        }, 1000);
-      })
-      .catch((err) => {
-        setPagesError(`Failed to load pages: ${err.message}`);
-        setPagesLoading(false);
-      });
-  }, []);
-
   // Save tabs to sessionStorage whenever tabs change
   useEffect(() => {
     if (tabs.length > 0) {
@@ -118,8 +65,15 @@ const TabBar: React.FC = () => {
       id: Date.now().toString(),
       name,
       token: "",
+      refreshToken: "",
       active: true,
       isLoggedIn: false,
+      profile: null,
+      profileLoading: false,
+      profileError: null,
+      pages: [],
+      pagesLoading: false,
+      pagesError: null,
     };
   };
 
@@ -174,6 +128,92 @@ const TabBar: React.FC = () => {
     );
   };
 
+  const getActiveTab = () => {
+    return tabs.find((tab) => tab.id === activeTabId) || null;
+  };
+
+  // Session-specific Facebook login
+  const handleLogin = async () => {
+    const activeTab = getActiveTab();
+    if (!activeTab) return;
+    try {
+      // ... your Facebook login logic here ...
+      // For now, simulate login and token fetch
+      const fakeToken = `token_${activeTab.id}`;
+      updateTab(activeTab.id, {
+        isLoggedIn: true,
+        token: fakeToken,
+        profileLoading: true,
+        profileError: null,
+      });
+      // Fetch profile
+      const profileRes = await fetch(ENDPOINTS.userProfile, {
+        headers: { Authorization: `Bearer ${fakeToken}` },
+      });
+      if (!profileRes.ok) throw new Error("Failed to fetch profile");
+      const profileData = await profileRes.json();
+      updateTab(activeTab.id, {
+        profile: profileData,
+        profileLoading: false,
+        profileError: null,
+      });
+      // Fetch pages
+      updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
+      const pagesRes = await fetch(ENDPOINTS.userPages, {
+        headers: { Authorization: `Bearer ${fakeToken}` },
+      });
+      if (!pagesRes.ok) throw new Error("Failed to fetch pages");
+      const pagesData = await pagesRes.json();
+      updateTab(activeTab.id, {
+        pages: Array.isArray(pagesData) ? pagesData : [],
+        pagesLoading: false,
+        pagesError: null,
+      });
+      toast({
+        title: "Login successful",
+        description: "You have successfully logged in with Facebook.",
+      });
+    } catch (error: unknown) {
+      updateTab(activeTab.id, {
+        isLoggedIn: false,
+        token: "",
+        profile: null,
+        profileLoading: false,
+        profileError:
+          error instanceof Error ? error.message : "Failed to login",
+        pages: [],
+        pagesLoading: false,
+        pagesError:
+          error instanceof Error ? error.message : "Failed to fetch pages",
+      });
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Failed to login",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Session-specific Facebook logout
+  const handleLogout = () => {
+    const activeTab = getActiveTab();
+    if (!activeTab) return;
+    updateTab(activeTab.id, {
+      isLoggedIn: false,
+      token: "",
+      profile: null,
+      profileLoading: false,
+      profileError: null,
+      pages: [],
+      pagesLoading: false,
+      pagesError: null,
+    });
+    toast({
+      title: "Logout successful",
+      description: "You have been logged out from Facebook.",
+    });
+  };
+
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
@@ -189,50 +229,6 @@ const TabBar: React.FC = () => {
     toast({
       title: newMode ? "Dark mode activated" : "Light mode activated",
       description: `Theme preference has been saved.`,
-    });
-  };
-
-  const getActiveTab = () => {
-    return tabs.find((tab) => tab.id === activeTabId) || null;
-  };
-
-  const handleLogin = async () => {
-    try {
-      await handleFacebookLogin();
-      const activeTab = getActiveTab();
-      if (activeTab) {
-        updateTab(activeTab.id, {
-          isLoggedIn: true,
-          profileData: profile
-            ? {
-                name: profile.name,
-                profilePicture:
-                  profile.picture?.data?.url || "https://i.pravatar.cc/300",
-              }
-            : undefined,
-        });
-      }
-      toast({
-        title: "Login successful",
-        description: "You have successfully logged in with Facebook.",
-      });
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    const activeTab = getActiveTab();
-    if (activeTab) {
-      updateTab(activeTab.id, {
-        isLoggedIn: false,
-        profileData: undefined,
-      });
-    }
-    toast({
-      title: "Logout successful",
-      description: "You have been logged out from Facebook.",
     });
   };
 
@@ -262,17 +258,20 @@ const TabBar: React.FC = () => {
       {/* Tab Content */}
       <div className="p-6 bg-white dark:bg-gray-900 flex-grow animate-fadeIn">
         {getActiveTab() ? (
-          <TabContent
-            tab={getActiveTab()!}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-            profile={profile}
-            profileLoading={profileLoading}
-            profileError={profileError}
-            pages={pages}
-            pagesLoading={pagesLoading}
-            pagesError={pagesError}
-          />
+          <>
+            <TabContent
+              tab={getActiveTab()!}
+              onLogin={handleLogin}
+              onLogout={handleLogout}
+            />
+            <AdminPanel
+              pages={getActiveTab()!.pages || []}
+              onVisitPage={(page: Page) =>
+                window.open(`https://facebook.com/${page.page_id}`, "_blank")
+              }
+              sessionToken={getActiveTab()!.token}
+            />
+          </>
         ) : (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <p>No active session. Create a new tab to continue.</p>

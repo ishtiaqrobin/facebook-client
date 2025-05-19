@@ -5,76 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileImage, Hash, Link, Upload } from "lucide-react";
 import { Page } from "./types";
-import { ENDPOINTS } from "@/lib/utility/config/config";
 import { useToast } from "@/hooks/use-toast";
+import { createPost } from "@/lib/api/facebook";
 
 interface AdminPanelProps {
   pages: Page[];
   onVisitPage: (page: Page) => void;
+  sessionToken: string;
 }
-
-// Backend API call utility
-const createPost = async ({
-  pageId,
-  file,
-  hashtag,
-}: {
-  pageId: string;
-  file: File | null;
-  hashtag: string;
-}) => {
-  const hashtagsArray = hashtag
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag);
-
-  const formData = new FormData();
-  formData.append("page_id", pageId);
-
-  if (file) {
-    if (file.type.startsWith("image/")) {
-      formData.append("image", file);
-    } else if (file.type.startsWith("video/")) {
-      formData.append("video", file);
-    }
-  }
-
-  // এখানে প্রতিটা tag আলাদা করে append করো
-  hashtagsArray.forEach((tag) => formData.append("hashtag", tag));
-
-  // Log data before API call
-  console.log("Sending data:", {
-    page_id: pageId,
-    hashtag: hashtagsArray,
-    file: file
-      ? {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        }
-      : null,
-  });
-
-  const response = await fetch(ENDPOINTS.createPost, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-    },
-    body: formData,
-  });
-
-  console.log(response, "response from create post");
-  console.log(formData, "from data from create post");
-
-  if (!response.ok) {
-    throw new Error("Failed to create post");
-  }
-  return await response.json();
-};
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   pages,
   onVisitPage,
+  sessionToken,
 }) => {
   // State for each page's file and hashtag
   const [pageStates, setPageStates] = useState<{
@@ -124,6 +67,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         pageId: page.page_id,
         file,
         hashtag,
+        sessionToken,
       });
       toast({
         title: "Post created!",

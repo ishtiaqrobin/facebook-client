@@ -2,13 +2,16 @@
 export interface Tab {
   id: string;
   name: string;
-  token: string;
+  token: string; // Facebook access token for this session
+  refreshToken?: string; // Facebook refresh token for this session
   active: boolean;
   isLoggedIn: boolean;
-  profileData?: {
-    name: string;
-    profilePicture: string;
-  };
+  profile?: Profile | null; // Session-specific profile
+  profileLoading?: boolean;
+  profileError?: string | null;
+  pages?: Page[]; // Session-specific pages
+  pagesLoading?: boolean;
+  pagesError?: string | null;
 }
 
 export interface Page {

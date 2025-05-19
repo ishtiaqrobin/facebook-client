@@ -1,6 +1,6 @@
 import React from "react";
 // import { useToast } from "@/hooks/use-toast";
-import { Tab, Profile, Page } from "./types";
+import { Tab } from "./types";
 import { ProfileSection } from "./ProfileSection";
 import { PagesSection } from "./PagesSection";
 import { AdminPanel } from "./AdminPanel";
@@ -12,24 +12,12 @@ interface TabContentProps {
   tab: Tab;
   onLogin: () => void;
   onLogout: () => void;
-  profile: Profile | null;
-  profileLoading: boolean;
-  profileError: string | null;
-  pages: Page[];
-  pagesLoading: boolean;
-  pagesError: string | null;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({
   tab,
   onLogin,
   onLogout,
-  profile,
-  profileLoading,
-  profileError,
-  pages,
-  pagesLoading,
-  pagesError,
 }) => {
   // const { toast } = useToast();
 
@@ -69,26 +57,27 @@ export const TabContent: React.FC<TabContentProps> = ({
         <div className="p-6 space-y-8">
           {/* Profile Section */}
           <ProfileSection
-            profile={profile}
-            profileLoading={profileLoading}
-            profileError={profileError}
+            profile={tab.profile ?? null}
+            profileLoading={tab.profileLoading || false}
+            profileError={tab.profileError || null}
           />
 
           {/* Pages Section */}
           <PagesSection
-            pages={pages}
-            pagesLoading={pagesLoading}
-            pagesError={pagesError}
+            pages={tab.pages || []}
+            pagesLoading={tab.pagesLoading || false}
+            pagesError={tab.pagesError || null}
           />
         </div>
       </div>
 
       {/* Admin Panel */}
       <AdminPanel
-        pages={pages}
+        pages={tab.pages || []}
         onVisitPage={(page) =>
           window.open(`https://facebook.com/${page.page_id}`, "_blank")
         }
+        sessionToken={tab.token}
       />
     </div>
   );

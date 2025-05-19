@@ -25,8 +25,10 @@ export default function Home() {
         isDarkMode ? "dark bg-gray-900" : "bg-gray-50"
       }`}
     >
+      {/* Header */}
       <Header />
 
+      {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 py-6">
         <div
           className={`rounded-lg shadow-md overflow-hidden ${
@@ -55,15 +57,16 @@ export default function Home() {
               }`}
             >
               {/* Manage your Facebook access tokens for auto-posting */}
-              <span className="text-red-500">
-                Last Updated: 19/05/2025 5:58 PM
-              </span>
+              Last Updated:
+              <span className="text-red-500">19/05/2025 8:48 PM</span>
             </p>
           </div>
 
+          {/* Tab Bar */}
           <TabBar />
         </div>
 
+        {/* Info Card */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <InfoCard
             title="Get Started"
@@ -86,6 +89,7 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Footer */}
       <Footer />
     </div>
   );

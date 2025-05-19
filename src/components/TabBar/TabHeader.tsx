@@ -32,7 +32,15 @@ const TabHeader: React.FC<TabHeaderProps> = ({
                         }`}
             onClick={() => setActiveTab(tab.id)}
           >
-            <div className="flex-grow truncate">{tab.name}</div>
+            <div className="flex-grow truncate flex items-center gap-2">
+              {tab.name}
+              {tab.isLoggedIn && (
+                <span
+                  className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"
+                  title="Logged in to Facebook"
+                />
+              )}
+            </div>
             <button
               className="ml-2 rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
               onClick={(e) => removeTab(tab.id, e)}
@@ -44,7 +52,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
         ))}
       </div>
       <button
-        className="flex-shrink-0 h-10 px-3 text-gray-600 dark:text-gray-300 hover:text-[#1877F2] dark:hover:text-[#e7f3ff] hover:bg-gray-200 dark:hover:bg-gray-700"
+        className="flex-shrink-0 h-10 px-3 text-gray-600 dark:text-gray-300 hover:text-[#1877F2] dark:hover:text-[#e7f3ff] hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
         onClick={addTab}
         aria-label="Add new tab"
       >

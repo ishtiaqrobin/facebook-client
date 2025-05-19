@@ -1,8 +1,12 @@
 import React from "react";
 import Image from "next/image";
 import logo from "../assets/logo.png";
+import { toast } from "sonner";
 
 const Header: React.FC = () => {
+  const pleaseLogin = () => {
+    toast.error("Please login with your Facebook account");
+  };
   return (
     <header className="bg-white border-b border-gray-200 py-4">
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -39,7 +43,10 @@ const Header: React.FC = () => {
 
         {/* Chrome is not supported this padding right*/}
         <div className="hidden md:flex items-center space-x-4 pr-0 md:pr-16">
-          <button className="px-4 py-2 bg-[#1877F2] text-white rounded-md hover:bg-[#145db2] transition-colors cursor-pointer">
+          <button
+            onClick={pleaseLogin}
+            className="px-4 py-2 bg-[#1877F2] text-white rounded-md hover:bg-[#145db2] transition-colors cursor-pointer"
+          >
             Connect
           </button>
         </div>
