@@ -137,18 +137,23 @@ const TabBar: React.FC = () => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
     try {
-      // ... your Facebook login logic here ...
-      // For now, simulate login and token fetch
-      const fakeToken = `token_${activeTab.id}`;
+      // Facebook OAuth login flow
+      // (Assume you have a function to trigger Facebook login and store token in localStorage)
+      // await handleFacebookLogin();
+
+      // Get real access token from localStorage
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) throw new Error("No access token found after login");
+
       updateTab(activeTab.id, {
         isLoggedIn: true,
-        token: fakeToken,
+        token: accessToken,
         profileLoading: true,
         profileError: null,
       });
       // Fetch profile
       const profileRes = await fetch(ENDPOINTS.userProfile, {
-        headers: { Authorization: `Bearer ${fakeToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!profileRes.ok) throw new Error("Failed to fetch profile");
       const profileData = await profileRes.json();
@@ -160,7 +165,7 @@ const TabBar: React.FC = () => {
       // Fetch pages
       updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
       const pagesRes = await fetch(ENDPOINTS.userPages, {
-        headers: { Authorization: `Bearer ${fakeToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!pagesRes.ok) throw new Error("Failed to fetch pages");
       const pagesData = await pagesRes.json();

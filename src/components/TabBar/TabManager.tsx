@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TabContent } from "./TabContent";
-import { Tab, Profile, Page } from "./types";
+import { Tab } from "./types";
 import TabHeader from "./TabHeader";
 import DarkModeToggle from "./DarkModeToggle";
 import { ENDPOINTS } from "@/lib/utility/config/config";
+import { useUser } from "@/hooks/useUser";
 
 // Encryption utility with better security
 class Encryption {
@@ -117,6 +118,7 @@ const TabManager: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const { toast } = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { handleFacebookLogin } = useUser();
 
   // Get the currently active tab
   const getActiveTab = useCallback(() => {
@@ -295,34 +297,43 @@ const TabManager: React.FC = () => {
         )
       );
 
-      // Simulate login and token fetch (replace with actual Facebook login)
-      const fakeToken = `token_${activeTab.id}`;
-      const encryptedToken = Encryption.encrypt(fakeToken);
+      // Facebook OAuth login flow
+      await handleFacebookLogin();
 
-      // Get cache instance
-      const cache = Cache.getInstance();
+      // Login success হলে, token localStorage-এ থাকবে
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) throw new Error("No access token found after login");
 
-      // Try to get profile from cache first
-      let profileData = cache.get<Profile>(`profile_${activeTab.id}`);
-      if (!profileData) {
-        const profileRes = await fetch(ENDPOINTS.userProfile, {
-          headers: { Authorization: `Bearer ${fakeToken}` },
-        });
-        if (!profileRes.ok) throw new Error("Failed to fetch profile");
-        profileData = await profileRes.json();
-        cache.set(`profile_${activeTab.id}`, profileData);
-      }
+      // Tab state update: token, isLoggedIn
+      setTabs((prevTabs) =>
+        prevTabs.map((tab) =>
+          tab.id === activeTab.id
+            ? {
+                ...tab,
+                isLoggedIn: true,
+                token: accessToken,
+                profileLoading: true,
+                profileError: null,
+                pagesLoading: true,
+                pagesError: null,
+              }
+            : tab
+        )
+      );
 
-      // Try to get pages from cache first
-      let pagesData = cache.get<Page[]>(`pages_${activeTab.id}`);
-      if (!pagesData) {
-        const pagesRes = await fetch(ENDPOINTS.userPages, {
-          headers: { Authorization: `Bearer ${fakeToken}` },
-        });
-        if (!pagesRes.ok) throw new Error("Failed to fetch pages");
-        pagesData = await pagesRes.json();
-        cache.set(`pages_${activeTab.id}`, pagesData);
-      }
+      // Fetch profile
+      const profileRes = await fetch(ENDPOINTS.userProfile, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!profileRes.ok) throw new Error("Failed to fetch profile");
+      const profileData = await profileRes.json();
+
+      // Fetch pages
+      const pagesRes = await fetch(ENDPOINTS.userPages, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!pagesRes.ok) throw new Error("Failed to fetch pages");
+      const pagesData = await pagesRes.json();
 
       // Update tab with fetched data
       setTabs((prevTabs) =>
@@ -330,9 +341,7 @@ const TabManager: React.FC = () => {
           tab.id === activeTab.id
             ? {
                 ...tab,
-                isLoggedIn: true,
-                token: encryptedToken,
-                profile: profileData as Profile,
+                profile: profileData,
                 profileLoading: false,
                 profileError: null,
                 pages: Array.isArray(pagesData) ? pagesData : [],
