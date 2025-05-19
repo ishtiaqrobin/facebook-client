@@ -200,7 +200,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="flex items-center">
                   <label
                     htmlFor={`file-upload-${page.page_id}`}
-                    className={`flex items-center justify-center w-full h-32 px-4 transition bg-white dark:bg-gray-800 
+                    className={`flex items-center justify-center w-full h-28 px-4 transition bg-white dark:bg-gray-800 
                       border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md appearance-none 
                       hover:border-[#1877F2] focus:outline-none cursor-pointer`}
                   >
@@ -263,14 +263,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="flex items-center space-x-4 mt-4">
                   <Button
                     variant="outline"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 cursor-pointer"
                     onClick={() => onVisitPage(page)}
                   >
                     <Link size={18} />
                     Visit Page
                   </Button>
                   <Button
-                    className="bg-[#1877F2] hover:bg-[#145db2] text-white flex items-center gap-2"
+                    className="bg-[#1877F2] hover:bg-[#145db2] text-white flex items-center gap-2 cursor-pointer"
                     onClick={() => handleUpload(page)}
                     disabled={
                       !pageStates[page.page_id]?.file ||
