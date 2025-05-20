@@ -196,7 +196,7 @@ const TabManager: React.FC = () => {
       }))
     );
     // শুধু active tab-এর জন্য sessionStorage থেকে data load করব
-    const token = sessionStorage.getItem(getTokenKey(id)) || "";
+    const token = sessionStorage.getItem(getTokenKey(id));
     const profileStr = sessionStorage.getItem(getProfileKey(id));
     const pagesStr = sessionStorage.getItem(getPagesKey(id));
     const profile = profileStr ? JSON.parse(profileStr) : null;
@@ -206,10 +206,14 @@ const TabManager: React.FC = () => {
         tab.id === id
           ? {
               ...tab,
-              token,
-              profile,
-              pages,
+              token: token || "",
+              profile: profile || null,
+              pages: pages || [],
               isLoggedIn: !!token,
+              profileLoading: false,
+              profileError: null,
+              pagesLoading: false,
+              pagesError: null,
             }
           : tab
       )
@@ -376,7 +380,7 @@ const TabManager: React.FC = () => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
     // Load token/profile/pages from sessionStorage
-    const token = sessionStorage.getItem(getTokenKey(activeTab.id)) || "";
+    const token = sessionStorage.getItem(getTokenKey(activeTab.id));
     const profileStr = sessionStorage.getItem(getProfileKey(activeTab.id));
     const pagesStr = sessionStorage.getItem(getPagesKey(activeTab.id));
     const profile = profileStr ? JSON.parse(profileStr) : null;
@@ -386,10 +390,14 @@ const TabManager: React.FC = () => {
         tab.id === activeTab.id
           ? {
               ...tab,
-              token,
-              profile,
-              pages,
+              token: token || "",
+              profile: profile || null,
+              pages: pages || [],
               isLoggedIn: !!token,
+              profileLoading: false,
+              profileError: null,
+              pagesLoading: false,
+              pagesError: null,
             }
           : tab
       )
