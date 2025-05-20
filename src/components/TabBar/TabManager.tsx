@@ -188,35 +188,13 @@ const TabManager: React.FC = () => {
 
   // Set active tab
   const setActiveTab = (id: string) => {
+    console.log("[setActiveTab] Switching to tab:", id);
     setActiveTabId(id);
     setTabs((prevTabs) =>
       prevTabs.map((tab) => ({
         ...tab,
         active: tab.id === id,
       }))
-    );
-    // শুধু active tab-এর জন্য sessionStorage থেকে data load করব
-    const token = sessionStorage.getItem(getTokenKey(id));
-    const profileStr = sessionStorage.getItem(getProfileKey(id));
-    const pagesStr = sessionStorage.getItem(getPagesKey(id));
-    const profile = profileStr ? JSON.parse(profileStr) : null;
-    const pages = pagesStr ? JSON.parse(pagesStr) : [];
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === id
-          ? {
-              ...tab,
-              token: token || "",
-              profile: profile || null,
-              pages: pages || [],
-              isLoggedIn: !!token,
-              profileLoading: false,
-              profileError: null,
-              pagesLoading: false,
-              pagesError: null,
-            }
-          : tab
-      )
     );
   };
 
@@ -385,6 +363,11 @@ const TabManager: React.FC = () => {
     const pagesStr = sessionStorage.getItem(getPagesKey(activeTab.id));
     const profile = profileStr ? JSON.parse(profileStr) : null;
     const pages = pagesStr ? JSON.parse(pagesStr) : [];
+    console.log("[useEffect:activeTabId] Loading data for tab:", activeTab.id, {
+      token,
+      profile,
+      pages,
+    });
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTab.id
