@@ -246,6 +246,30 @@ const TabManager: React.FC = () => {
     });
   };
 
+  // TabManager component-এর ভিতরে
+  const syncActiveTabFromSessionStorage = () => {
+    const activeTab = getActiveTab();
+    if (!activeTab) return;
+    const token = sessionStorage.getItem(getTokenKey(activeTab.id)) || "";
+    const profileStr = sessionStorage.getItem(getProfileKey(activeTab.id));
+    const pagesStr = sessionStorage.getItem(getPagesKey(activeTab.id));
+    const profile = profileStr ? JSON.parse(profileStr) : null;
+    const pages = pagesStr ? JSON.parse(pagesStr) : [];
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === activeTab.id
+          ? {
+              ...tab,
+              token,
+              profile,
+              pages,
+              isLoggedIn: !!token,
+            }
+          : tab
+      )
+    );
+  };
+
   // Handle Facebook login for a session
   const handleLogin = async () => {
     const activeTab = getActiveTab();
@@ -322,6 +346,8 @@ const TabManager: React.FC = () => {
         title: "Login successful",
         description: "You have successfully logged in with Facebook.",
       });
+      // sessionStorage থেকে ডাটা নিয়ে active tab-এর state-এ বসাও
+      syncActiveTabFromSessionStorage();
     } catch (error: unknown) {
       setTabs((prevTabs) =>
         prevTabs.map((tab) =>
@@ -349,6 +375,8 @@ const TabManager: React.FC = () => {
         description: error instanceof Error ? error.message : "Failed to login",
         variant: "destructive",
       });
+      // sessionStorage থেকে ডাটা নিয়ে active tab-এর state-এ বসাও
+      syncActiveTabFromSessionStorage();
     }
   };
 
@@ -381,6 +409,8 @@ const TabManager: React.FC = () => {
       title: "Logout successful",
       description: "You have been logged out from Facebook.",
     });
+    // sessionStorage থেকে ডাটা নিয়ে active tab-এর state-এ বসাও
+    syncActiveTabFromSessionStorage();
   };
 
   // When switching tabs, load session-specific data
