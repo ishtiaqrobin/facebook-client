@@ -387,6 +387,9 @@ const TabManager: React.FC = () => {
   // Profile & Pages fetch function
   const fetchProfileAndPages = async (accessToken: string, tabId: string) => {
     try {
+      // Save token first
+      sessionStorage.setItem(getTokenKey(tabId), accessToken);
+
       // Fetch profile
       const profileRes = await fetch(ENDPOINTS.userProfile, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -402,10 +405,13 @@ const TabManager: React.FC = () => {
                 profile: profileData,
                 profileLoading: false,
                 profileError: null,
+                token: accessToken, // token state-এও save করছি
+                isLoggedIn: true, // isLoggedIn true করছি
               }
             : tab
         )
       );
+
       // Fetch pages
       const pagesRes = await fetch(ENDPOINTS.userPages, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -425,6 +431,7 @@ const TabManager: React.FC = () => {
             : tab
         )
       );
+
       toast({
         title: "Login successful",
         description: "You have successfully logged in with Facebook.",
@@ -448,6 +455,8 @@ const TabManager: React.FC = () => {
                   error instanceof Error
                     ? error.message
                     : "Failed to fetch pages",
+                token: "", // error হলে token clear করছি
+                isLoggedIn: false, // error হলে isLoggedIn false করছি
               }
             : tab
         )

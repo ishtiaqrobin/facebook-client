@@ -274,6 +274,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("refresh_token", refreshToken);
 
+      // Store token in sessionStorage for the active tab
+      const activeTabId = sessionStorage.getItem(
+        "facebook-auto-poster-active-tab"
+      );
+      if (activeTabId) {
+        sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
+      }
+
       // Fetch user data with the new token
       await fetchUserData();
 
