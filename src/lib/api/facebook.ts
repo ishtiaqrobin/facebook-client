@@ -48,7 +48,7 @@ export const createPost = async ({
   const response = await fetch(ENDPOINTS.createPost, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${sessionToken}`,
+      Authorization: `Bearer ${sessionToken.trim()}`,
     },
     body: formData,
   });

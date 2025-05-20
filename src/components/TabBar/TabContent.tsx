@@ -12,12 +12,14 @@ interface TabContentProps {
   tab: Tab;
   onLogin: () => void;
   onLogout: () => void;
+  sessionToken: string;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({
   tab,
   onLogin,
   onLogout,
+  sessionToken,
 }) => {
   // const { toast } = useToast();
 
@@ -79,7 +81,7 @@ export const TabContent: React.FC<TabContentProps> = ({
         onVisitPage={(page) =>
           window.open(`https://facebook.com/${page.page_id}`, "_blank")
         }
-        sessionToken={tab.token}
+        sessionToken={sessionToken}
       />
     </div>
   );

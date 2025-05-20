@@ -62,12 +62,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleUpload = async (page: Page) => {
     const { file, hashtag } = pageStates[page.page_id] || {};
+
+    // Check if sessionToken exists and is valid
+    if (!sessionToken || sessionToken.trim() === "") {
+      toast({
+        title: "Error",
+        description: "No valid session token found. Please login again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const result = await createPost({
         pageId: page.page_id,
         file,
         hashtag,
-        sessionToken,
+        sessionToken: sessionToken.trim(), // trim() দিয়ে whitespace remove করছি
       });
       toast({
         title: "Post created!",
