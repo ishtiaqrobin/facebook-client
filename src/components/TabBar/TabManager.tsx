@@ -273,14 +273,16 @@ const TabManager: React.FC = () => {
   // Handle Facebook login for a session
   const handleLogin = async () => {
     const activeTab = getActiveTab();
-    if (!activeTab) return;
+    if (!activeTab) {
+      console.log("No active tab found!");
+      return;
+    }
     try {
-      // Initiate Facebook OAuth login flow
       await handleFacebookLogin();
-      // After OAuth, token should be available in localStorage
       const accessToken = localStorage.getItem("access_token");
+      console.log("activeTab from TabManager", activeTab);
+      console.log("accessToken from TabManager", accessToken);
       if (!accessToken) throw new Error("No access token found after login");
-      // Save to sessionStorage for this tab
       sessionStorage.setItem(getTokenKey(activeTab.id), accessToken);
       // Update tab state
       setTabs((prevTabs) =>

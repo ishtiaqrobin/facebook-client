@@ -216,14 +216,18 @@ const TabBar: React.FC = () => {
   // Update handleLogin to sync token/profile/pages to tab and sessionStorage
   const handleLogin = async () => {
     const activeTab = getActiveTab();
-    if (!activeTab) return;
+    if (!activeTab) {
+      console.log("No active tab found!");
+      return;
+    }
     try {
       // Initiate Facebook OAuth login flow
       await handleFacebookLogin();
-      // After OAuth, token should be available in localStorage
+      // After OAuth, token should be available in localStorage.
       const accessToken = localStorage.getItem("access_token");
+      console.log("activeTab from TabBar", activeTab);
+      console.log("accessToken from TabBar", accessToken);
       if (!accessToken) throw new Error("No access token found after login");
-      // Save to sessionStorage for this tab
       sessionStorage.setItem(getTokenKey(activeTab.id), accessToken);
       // Update tab state
       updateTab(activeTab.id, {
