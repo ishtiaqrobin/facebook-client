@@ -40,6 +40,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   const refreshToken = async (): Promise<boolean> => {
+    if (typeof window === "undefined") return false;
+
     const refreshToken = localStorage.getItem("refresh_token");
     if (!refreshToken) return false;
 
@@ -66,6 +68,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const fetchUserData = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
     const token = localStorage.getItem("access_token");
 
     if (!token) {

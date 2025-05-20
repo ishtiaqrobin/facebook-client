@@ -21,6 +21,8 @@ export const TabContent: React.FC<TabContentProps> = ({
 }) => {
   // const { toast } = useToast();
 
+  console.log("tab from TabContent", tab);
+
   return (
     <div className="space-y-6">
       {/* Session Information */}

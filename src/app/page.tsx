@@ -9,13 +9,16 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // Load dark mode preference from localStorage
-    const darkModePreference = localStorage.getItem(
-      "facebook-auto-poster-darkmode"
-    );
-    if (darkModePreference === "dark") {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
+    // Check if we're in browser environment
+    if (typeof window !== "undefined") {
+      // Load dark mode preference from localStorage
+      const darkModePreference = localStorage.getItem(
+        "facebook-auto-poster-darkmode"
+      );
+      if (darkModePreference === "dark") {
+        setIsDarkMode(true);
+        document.documentElement.classList.add("dark");
+      }
     }
   }, []);
 
@@ -58,7 +61,7 @@ export default function Home() {
             >
               {/* Manage your Facebook access tokens for auto-posting */}
               Last Updated: 20/05/2025
-              <span className="text-red-500"> 4:05 AM</span>
+              <span className="text-red-500"> 9:40 PM</span>
             </p>
           </div>
 

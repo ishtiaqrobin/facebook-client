@@ -24,12 +24,12 @@ const DarkModeToggle: React.FC<DarkModeToggleProps> = ({
   };
 
   return (
-    <div className="absolute top-4 right-4 z-10">
+    <div className="absolute top- right-2 z-10">
       <Button
         variant="outline"
         size="sm"
         onClick={handleToggle}
-        className="rounded-full"
+        className="rounded-full cursor-pointer"
       >
         {isDarkMode ? "☀️" : "🌙"}
       </Button>
