@@ -159,7 +159,7 @@ const TabManager: React.FC = () => {
     return {
       id: Date.now().toString(),
       name,
-      token: "",
+      token: "", // always empty
       active: true,
       isLoggedIn: false,
       profile: null,
@@ -195,12 +195,30 @@ const TabManager: React.FC = () => {
         active: tab.id === id,
       }))
     );
+    // শুধু active tab-এর জন্য sessionStorage থেকে data load করব
+    const token = sessionStorage.getItem(getTokenKey(id)) || "";
+    const profileStr = sessionStorage.getItem(getProfileKey(id));
+    const pagesStr = sessionStorage.getItem(getPagesKey(id));
+    const profile = profileStr ? JSON.parse(profileStr) : null;
+    const pages = pagesStr ? JSON.parse(pagesStr) : [];
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === id
+          ? {
+              ...tab,
+              token,
+              profile,
+              pages,
+              isLoggedIn: !!token,
+            }
+          : tab
+      )
+    );
   };
 
   // Add a new tab
   const addTab = () => {
     if (typeof window === "undefined") return;
-
     const newTabNumber = getNextSessionNumber();
     const newTab = createNewTab(`Session ${newTabNumber}`);
     // Remove any sessionStorage data for this new tab id (shouldn't exist, but for safety)
