@@ -6,6 +6,8 @@ export interface Tab {
   refreshToken?: string; // Facebook refresh token for this session
   active: boolean;
   isLoggedIn: boolean;
+
+  // Warning: eivabe pore korcho (UI te data show kore na)
   profile?: Profile | null; // Session-specific profile
   profileLoading?: boolean;
   profileError?: string | null;

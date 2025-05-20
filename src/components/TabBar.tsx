@@ -149,9 +149,19 @@ const TabBar: React.FC = () => {
     );
   }, [activeTabId]);
 
-  // When adding a new tab, ensure it starts empty (no token/profile/pages)
+  // Helper to get next available session number
+  const getNextSessionNumber = () => {
+    const numbers = tabs
+      .map((tab) => parseInt(tab.name.replace("Session ", ""), 10))
+      .filter((n) => !isNaN(n));
+    let n = 1;
+    while (numbers.includes(n)) n++;
+    return n;
+  };
+
+  // Update addTab to use getNextSessionNumber
   const addTab = () => {
-    const newTabNumber = tabs.length + 1;
+    const newTabNumber = getNextSessionNumber();
     const newTab = createNewTab(`Session ${newTabNumber}`);
     // Remove any sessionStorage data for this new tab id (shouldn't exist, but for safety)
     sessionStorage.removeItem(getTokenKey(newTab.id));
@@ -203,21 +213,26 @@ const TabBar: React.FC = () => {
     return tabs.find((tab) => tab.id === activeTabId) || null;
   };
 
-  // Session-specific Facebook login
+  // Update handleLogin to sync token/profile/pages to tab and sessionStorage
   const handleLogin = async () => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
     try {
       // Initiate Facebook OAuth login flow
       await handleFacebookLogin();
-      // After OAuth, token should be available in sessionStorage for this tab
-      const accessToken = sessionStorage.getItem(getTokenKey(activeTab.id));
+      // After OAuth, token should be available in localStorage
+      const accessToken = localStorage.getItem("access_token");
       if (!accessToken) throw new Error("No access token found after login");
+      // Save to sessionStorage for this tab
+      sessionStorage.setItem(getTokenKey(activeTab.id), accessToken);
+      // Update tab state
       updateTab(activeTab.id, {
         isLoggedIn: true,
         token: accessToken,
         profileLoading: true,
         profileError: null,
+        pagesLoading: true,
+        pagesError: null,
       });
       // Fetch profile
       const profileRes = await fetch(ENDPOINTS.userProfile, {
@@ -225,18 +240,25 @@ const TabBar: React.FC = () => {
       });
       if (!profileRes.ok) throw new Error("Failed to fetch profile");
       const profileData = await profileRes.json();
+      sessionStorage.setItem(
+        getProfileKey(activeTab.id),
+        JSON.stringify(profileData)
+      );
       updateTab(activeTab.id, {
         profile: profileData,
         profileLoading: false,
         profileError: null,
       });
       // Fetch pages
-      updateTab(activeTab.id, { pagesLoading: true, pagesError: null });
       const pagesRes = await fetch(ENDPOINTS.userPages, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!pagesRes.ok) throw new Error("Failed to fetch pages");
       const pagesData = await pagesRes.json();
+      sessionStorage.setItem(
+        getPagesKey(activeTab.id),
+        JSON.stringify(pagesData)
+      );
       updateTab(activeTab.id, {
         pages: Array.isArray(pagesData) ? pagesData : [],
         pagesLoading: false,
