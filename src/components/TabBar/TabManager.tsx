@@ -438,6 +438,12 @@ const TabManager: React.FC = () => {
     );
   }, [activeTabId]);
 
+  // App reload/callback-এর পরেও sessionStorage থেকে ডাটা load
+  useEffect(() => {
+    syncActiveTabFromSessionStorage();
+    // eslint-disable-next-line
+  }, []);
+
   return (
     <div className={`flex flex-col w-full ${isDarkMode ? "dark" : ""}`}>
       {/* Dark Mode Toggle */}
