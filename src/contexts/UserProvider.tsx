@@ -243,7 +243,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error(data.detail || "Failed to initiate Facebook login");
       }
 
-      console.log("Facebook login initiated successfully");
+      // console.log("Facebook login initiated successfully");
 
       if (!data.redirect_url) {
         throw new Error("No redirect URL received from server");
@@ -309,7 +309,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/");
   };
 
-  console.log(user, "user data from user context");
+  // console.log(user, "user data from user context");
 
   return (
     <UserContext.Provider

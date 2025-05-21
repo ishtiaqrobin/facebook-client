@@ -12,7 +12,7 @@ export const PagesSection: React.FC<PagesSectionProps> = ({
   pagesLoading,
   pagesError,
 }) => {
-  console.log("Pages in PagesSection:", pages);
+  // console.log("Pages in PagesSection:", pages);
 
   return (
     <div className="space-y-4">

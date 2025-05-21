@@ -33,17 +33,17 @@ export const createPost = async ({
   hashtagsArray.forEach((tag) => formData.append("hashtag", tag));
 
   // Log data before API call
-  console.log("Sending data:", {
-    page_id: pageId,
-    hashtag: hashtagsArray,
-    file: file
-      ? {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        }
-      : null,
-  });
+  // console.log("Sending data:", {
+  //   page_id: pageId,
+  //   hashtag: hashtagsArray,
+  //   file: file
+  //     ? {
+  //         name: file.name,
+  //         type: file.type,
+  //         size: file.size,
+  //       }
+  //     : null,
+  // });
 
   const response = await fetch(ENDPOINTS.createPost, {
     method: "POST",
