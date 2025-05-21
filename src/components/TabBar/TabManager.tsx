@@ -483,7 +483,9 @@ const TabManager: React.FC = () => {
   useEffect(() => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
-    const accessToken = sessionStorage.getItem(getTokenKey(activeTab.id));
+    const accessToken =
+      sessionStorage.getItem(getTokenKey(activeTab.id)) ||
+      localStorage.getItem("access_token");
     if (!accessToken) return;
     // যদি profile/pages আগে না আনা হয়, তাহলে এখন আনো
     if (!activeTab.profileLoading && !activeTab.profile) {
