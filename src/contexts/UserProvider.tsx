@@ -154,9 +154,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const redirectUrl = urlParams.get("redirect");
     const error = urlParams.get("error");
 
-    console.log("[DEBUG] useEffect: accessToken", accessToken);
-    console.log("[DEBUG] useEffect: refreshToken", refreshToken);
-
     if (error) {
       toast({
         title: "Error",
@@ -167,57 +164,50 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (accessToken) {
-      try {
-        const decodedToken = JSON.parse(atob(accessToken.split(".")[1]));
-        const expirationTime = decodedToken.exp * 1000;
+      // Wait until activeTabId is available
+      const trySetToken = (retry = 0) => {
         const activeTabId = sessionStorage.getItem(
           "facebook-auto-poster-active-tab"
         );
-        console.log("[DEBUG] useEffect: activeTabId", activeTabId);
-
-        if (activeTabId) {
-          sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
-          sessionStorage.setItem(
-            `fb_token_expiration_${activeTabId}`,
-            expirationTime.toString()
-          );
-          if (refreshToken) {
-            sessionStorage.setItem(
-              `fb_refresh_token_${activeTabId}`,
-              refreshToken
+        if (!activeTabId) {
+          if (retry < 20) {
+            // wait up to 2 seconds
+            setTimeout(() => trySetToken(retry + 1), 100);
+          } else {
+            console.error(
+              "[DEBUG] No activeTabId found in sessionStorage after retry!"
             );
           }
-          if (profileImage) {
-            sessionStorage.setItem(
-              `fb_profile_image_${activeTabId}`,
-              profileImage
-            );
-          }
-          console.log(
-            "[DEBUG] Token set in sessionStorage for tab",
-            activeTabId
-          );
-        } else {
-          console.error("[DEBUG] No activeTabId found in sessionStorage!");
+          return;
         }
-
-        // Fetch user data immediately after setting token
+        // Now set token
+        const decodedToken = JSON.parse(atob(accessToken.split(".")[1]));
+        const expirationTime = decodedToken.exp * 1000;
+        sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
+        sessionStorage.setItem(
+          `fb_token_expiration_${activeTabId}`,
+          expirationTime.toString()
+        );
+        if (refreshToken) {
+          sessionStorage.setItem(
+            `fb_refresh_token_${activeTabId}`,
+            refreshToken
+          );
+        }
+        if (profileImage) {
+          sessionStorage.setItem(
+            `fb_profile_image_${activeTabId}`,
+            profileImage
+          );
+        }
         fetchUserData();
-
-        // Remove token from URL for security
         window.history.replaceState(
           {},
           document.title,
           window.location.pathname
         );
-      } catch (e) {
-        console.error("Invalid token received:", e);
-        toast({
-          title: "Error",
-          description: "Invalid token received",
-          variant: "destructive",
-        });
-      }
+      };
+      trySetToken();
     }
     if (redirectUrl) {
       sessionStorage.setItem(
