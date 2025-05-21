@@ -102,7 +102,22 @@ const TabManager: React.FC = () => {
     }
 
     if (savedTabs) {
-      const parsedTabs: Tab[] = JSON.parse(savedTabs);
+      // Only restore basic info, not sensitive data
+      const parsedTabs: Tab[] = (JSON.parse(savedTabs) as Partial<Tab>[]).map(
+        (tab) => ({
+          id: tab.id!,
+          name: tab.name!,
+          active: tab.active ?? false,
+          isLoggedIn: tab.isLoggedIn ?? false,
+          token: "",
+          profile: null,
+          profileLoading: false,
+          profileError: null,
+          pages: [],
+          pagesLoading: false,
+          pagesError: null,
+        })
+      );
       setTabs(parsedTabs);
 
       // If there's a saved active tab, set it
@@ -124,7 +139,17 @@ const TabManager: React.FC = () => {
     if (typeof window === "undefined") return;
 
     if (tabs.length > 0) {
-      sessionStorage.setItem("facebook-auto-poster-tabs", JSON.stringify(tabs));
+      // Only save basic info, not sensitive data
+      const tabsToSave = tabs.map(({ id, name, active, isLoggedIn }) => ({
+        id,
+        name,
+        active,
+        isLoggedIn,
+      }));
+      sessionStorage.setItem(
+        "facebook-auto-poster-tabs",
+        JSON.stringify(tabsToSave)
+      );
 
       // Make sure we have an active tab if there are tabs
       if (!activeTabId || !tabs.find((tab) => tab.id === activeTabId)) {
@@ -275,7 +300,6 @@ const TabManager: React.FC = () => {
     });
   };
 
-  // TabManager component-এর ভিতরে
   const syncActiveTabFromSessionStorage = () => {
     if (typeof window === "undefined") return;
 
@@ -287,16 +311,17 @@ const TabManager: React.FC = () => {
     const profile = profileStr ? JSON.parse(profileStr) : null;
     const pages = pagesStr ? JSON.parse(pagesStr) : [];
     setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === activeTab.id
-          ? {
-              ...tab,
-              token,
-              profile,
-              pages,
-              isLoggedIn: !!token,
-            }
-          : tab
+      prevTabs.map(
+        (tab) =>
+          tab.id === activeTab.id
+            ? {
+                ...tab,
+                token,
+                profile,
+                pages,
+                isLoggedIn: !!token,
+              }
+            : tab // keep other tabs unchanged
       )
     );
   };
@@ -369,22 +394,24 @@ const TabManager: React.FC = () => {
       pages,
     });
     setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === activeTab.id
-          ? {
-              ...tab,
-              token: token || "",
-              profile: profile || null,
-              pages: pages || [],
-              isLoggedIn: !!token,
-              profileLoading: false,
-              profileError: null,
-              pagesLoading: false,
-              pagesError: null,
-            }
-          : tab
+      prevTabs.map(
+        (tab) =>
+          tab.id === activeTab.id
+            ? {
+                ...tab,
+                token: token || "",
+                profile: profile || null,
+                pages: pages || [],
+                isLoggedIn: !!token,
+                profileLoading: false,
+                profileError: null,
+                pagesLoading: false,
+                pagesError: null,
+              }
+            : tab // keep other tabs unchanged
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId]);
 
   // App reload/callback-এর পরেও sessionStorage থেকে ডাটা load
@@ -498,6 +525,7 @@ const TabManager: React.FC = () => {
       );
       fetchProfileAndPages(accessToken, activeTab.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId]);
 
   return (
