@@ -154,6 +154,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const redirectUrl = urlParams.get("redirect");
     const error = urlParams.get("error");
 
+    console.log("[DEBUG] useEffect: accessToken", accessToken);
+    console.log("[DEBUG] useEffect: refreshToken", refreshToken);
+
     if (error) {
       toast({
         title: "Error",
@@ -170,6 +173,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         const activeTabId = sessionStorage.getItem(
           "facebook-auto-poster-active-tab"
         );
+        console.log("[DEBUG] useEffect: activeTabId", activeTabId);
 
         if (activeTabId) {
           sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
@@ -189,6 +193,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
               profileImage
             );
           }
+          console.log(
+            "[DEBUG] Token set in sessionStorage for tab",
+            activeTabId
+          );
+        } else {
+          console.error("[DEBUG] No activeTabId found in sessionStorage!");
         }
 
         // Fetch user data immediately after setting token
@@ -373,7 +383,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/");
   };
 
-  // console.log(user, "user data from user context");
+  console.log(user, "user data from user context");
 
   return (
     <UserContext.Provider

@@ -188,7 +188,7 @@ const TabManager: React.FC = () => {
 
   // Set active tab
   const setActiveTab = (id: string) => {
-    console.log("[setActiveTab] Switching to tab:", id);
+    console.log("[setActiveTab] Switching to TabManager:", id);
     setActiveTabId(id);
     setTabs((prevTabs) =>
       prevTabs.map((tab) => ({
@@ -363,11 +363,15 @@ const TabManager: React.FC = () => {
     const pagesStr = sessionStorage.getItem(getPagesKey(activeTab.id));
     const profile = profileStr ? JSON.parse(profileStr) : null;
     const pages = pagesStr ? JSON.parse(pagesStr) : [];
-    console.log("[useEffect:activeTabId] Loading data for tab:", activeTab.id, {
-      token,
-      profile,
-      pages,
-    });
+    console.log(
+      "[useEffect:activeTabId] Loading data for TabManger:",
+      activeTab.id,
+      {
+        token,
+        profile,
+        pages,
+      }
+    );
     setTabs((prevTabs) =>
       prevTabs.map((tab) =>
         tab.id === activeTab.id
