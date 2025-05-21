@@ -42,7 +42,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshToken = async (): Promise<boolean> => {
     if (typeof window === "undefined") return false;
 
-    const refreshToken = localStorage.getItem("refresh_token");
+    const activeTabId = sessionStorage.getItem(
+      "facebook-auto-poster-active-tab"
+    );
+    if (!activeTabId) return false;
+
+    const refreshToken = sessionStorage.getItem(
+      `fb_refresh_token_${activeTabId}`
+    );
     if (!refreshToken) return false;
 
     try {
@@ -56,8 +63,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("access_token", data.access);
-        document.cookie = `access_token=${data.access}; path=/; Secure`;
+        sessionStorage.setItem(`fb_token_${activeTabId}`, data.access);
         return true;
       }
       return false;
@@ -70,8 +76,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUserData = useCallback(async () => {
     if (typeof window === "undefined") return;
 
-    const token = localStorage.getItem("access_token");
+    const activeTabId = sessionStorage.getItem(
+      "facebook-auto-poster-active-tab"
+    );
+    if (!activeTabId) {
+      setLoading(false);
+      return;
+    }
 
+    const token = sessionStorage.getItem(`fb_token_${activeTabId}`);
     if (!token) {
       setLoading(false);
       return;
@@ -90,16 +103,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         setUser(profileData);
+        // Save profile data in sessionStorage
+        sessionStorage.setItem(
+          `fb_profile_${activeTabId}`,
+          JSON.stringify(profileData)
+        );
       } else if (profileResponse.status === 401) {
         const refreshSuccess = await refreshToken();
         if (refreshSuccess) {
           await fetchUserData();
         } else {
-          localStorage.clear();
-          document.cookie =
-            "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-          document.cookie =
-            "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+          // Clear only this tab's data
+          sessionStorage.removeItem(`fb_token_${activeTabId}`);
+          sessionStorage.removeItem(`fb_refresh_token_${activeTabId}`);
+          sessionStorage.removeItem(`fb_profile_${activeTabId}`);
           setUser(null);
           toast({
             title: "Session Expired",
@@ -150,13 +167,29 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const decodedToken = JSON.parse(atob(accessToken.split(".")[1]));
         const expirationTime = decodedToken.exp * 1000;
-        localStorage.setItem("token_expiration", expirationTime.toString());
-        localStorage.setItem("access_token", accessToken);
-        if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
-        if (profileImage) localStorage.setItem("profile_image", profileImage);
-        document.cookie = `access_token=${accessToken}; path=/; Secure`;
-        if (refreshToken)
-          document.cookie = `refresh_token=${refreshToken}; path=/; Secure`;
+        const activeTabId = sessionStorage.getItem(
+          "facebook-auto-poster-active-tab"
+        );
+
+        if (activeTabId) {
+          sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
+          sessionStorage.setItem(
+            `fb_token_expiration_${activeTabId}`,
+            expirationTime.toString()
+          );
+          if (refreshToken) {
+            sessionStorage.setItem(
+              `fb_refresh_token_${activeTabId}`,
+              refreshToken
+            );
+          }
+          if (profileImage) {
+            sessionStorage.setItem(
+              `fb_profile_image_${activeTabId}`,
+              profileImage
+            );
+          }
+        }
 
         // Fetch user data immediately after setting token
         fetchUserData();
@@ -177,12 +210,39 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
     if (redirectUrl) {
-      localStorage.setItem(
+      sessionStorage.setItem(
         "redirect_url",
         redirectUrl || "https://www.facebook-poster.ezbitly.com"
       );
     }
-  }, [toast]); // Remove fetchUserData from dependencies
+  }, [toast]);
+
+  // Token expiration check
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const activeTabId = sessionStorage.getItem(
+        "facebook-auto-poster-active-tab"
+      );
+      if (!activeTabId) return;
+
+      const expirationTime = sessionStorage.getItem(
+        `fb_token_expiration_${activeTabId}`
+      );
+      if (!expirationTime) return;
+
+      const now = Date.now();
+      const timeUntilExpiration = parseInt(expirationTime) - now;
+
+      // If token expires in less than 5 minutes, refresh it
+      if (timeUntilExpiration < 5 * 60 * 1000) {
+        refreshToken();
+      }
+    };
+
+    // Check token expiration every minute
+    const interval = setInterval(checkTokenExpiration, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleFacebookLogin = async () => {
     try {
@@ -270,17 +330,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     refreshToken: string
   ) => {
     try {
-      // Store tokens in localStorage
-      localStorage.setItem("access_token", accessToken);
-      localStorage.setItem("refresh_token", refreshToken);
-
-      // Store token in sessionStorage for the active tab
       const activeTabId = sessionStorage.getItem(
         "facebook-auto-poster-active-tab"
       );
-      if (activeTabId) {
-        sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
+      if (!activeTabId) {
+        throw new Error("No active tab found");
       }
+
+      // Store tokens in sessionStorage for the active tab
+      sessionStorage.setItem(`fb_token_${activeTabId}`, accessToken);
+      sessionStorage.setItem(`fb_refresh_token_${activeTabId}`, refreshToken);
 
       // Fetch user data with the new token
       await fetchUserData();
@@ -300,11 +359,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.clear();
-    document.cookie =
-      "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-    document.cookie =
-      "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    const activeTabId = sessionStorage.getItem(
+      "facebook-auto-poster-active-tab"
+    );
+    if (activeTabId) {
+      // Clear only this tab's data
+      sessionStorage.removeItem(`fb_token_${activeTabId}`);
+      sessionStorage.removeItem(`fb_refresh_token_${activeTabId}`);
+      sessionStorage.removeItem(`fb_profile_${activeTabId}`);
+      sessionStorage.removeItem(`fb_profile_image_${activeTabId}`);
+    }
     setUser(null);
     router.push("/");
   };

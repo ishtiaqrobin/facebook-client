@@ -28,9 +28,9 @@ class Encryption {
     if (envKey && envKey.length >= 32) {
       return envKey;
     }
-    // Generate and store a new key in localStorage for persistence
+    // Generate and store a new key in sessionStorage for persistence
     const generatedKey = Encryption.generateSecureKey();
-    localStorage.setItem("fb_auto_poster_encryption_key", generatedKey);
+    sessionStorage.setItem("fb_auto_poster_encryption_key", generatedKey);
     return generatedKey;
   })();
 
@@ -65,7 +65,7 @@ class Encryption {
     if (typeof window === "undefined") return;
 
     const newKey = Encryption.generateSecureKey();
-    localStorage.setItem("fb_auto_poster_encryption_key", newKey);
+    sessionStorage.setItem("fb_auto_poster_encryption_key", newKey);
     // Note: In a real application, you would need to re-encrypt all stored tokens
     // with the new key
   }
@@ -89,7 +89,7 @@ const TabManager: React.FC = () => {
 
     const savedTabs = sessionStorage.getItem("facebook-auto-poster-tabs");
     const activeTab = sessionStorage.getItem("facebook-auto-poster-active-tab");
-    const darkModePreference = localStorage.getItem(
+    const darkModePreference = sessionStorage.getItem(
       "facebook-auto-poster-darkmode"
     );
 
@@ -145,12 +145,12 @@ const TabManager: React.FC = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const lastRotation = localStorage.getItem("fb_auto_poster_key_rotation");
+    const lastRotation = sessionStorage.getItem("fb_auto_poster_key_rotation");
     const now = Date.now();
 
     if (!lastRotation || now - parseInt(lastRotation) > 24 * 60 * 60 * 1000) {
       Encryption.rotateKey();
-      localStorage.setItem("fb_auto_poster_key_rotation", now.toString());
+      sessionStorage.setItem("fb_auto_poster_key_rotation", now.toString());
     }
   }, []);
 
@@ -263,10 +263,10 @@ const TabManager: React.FC = () => {
 
     if (newMode) {
       document.documentElement.classList.add("dark-mode");
-      localStorage.setItem("facebook-auto-poster-darkmode", "dark");
+      sessionStorage.setItem("facebook-auto-poster-darkmode", "dark");
     } else {
       document.documentElement.classList.remove("dark-mode");
-      localStorage.setItem("facebook-auto-poster-darkmode", "light");
+      sessionStorage.setItem("facebook-auto-poster-darkmode", "light");
     }
 
     toast({
@@ -483,11 +483,9 @@ const TabManager: React.FC = () => {
   useEffect(() => {
     const activeTab = getActiveTab();
     if (!activeTab) return;
-    const accessToken =
-      sessionStorage.getItem(getTokenKey(activeTab.id)) ||
-      localStorage.getItem("access_token");
+    const accessToken = sessionStorage.getItem(getTokenKey(activeTab.id));
     if (!accessToken) return;
-    // যদি profile/pages আগে না আনা হয়, তাহলে এখন আনো
+    // যদি profile/pages আগে না আনা হয়, তাহলে এখন আনো
     if (!activeTab.profileLoading && !activeTab.profile) {
       setTabs((prevTabs) =>
         prevTabs.map((tab) =>

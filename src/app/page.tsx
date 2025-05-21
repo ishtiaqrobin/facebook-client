@@ -11,8 +11,8 @@ export default function Home() {
   useEffect(() => {
     // Check if we're in browser environment
     if (typeof window !== "undefined") {
-      // Load dark mode preference from localStorage
-      const darkModePreference = localStorage.getItem(
+      // Load dark mode preference from sessionStorage
+      const darkModePreference = sessionStorage.getItem(
         "facebook-auto-poster-darkmode"
       );
       if (darkModePreference === "dark") {
@@ -61,7 +61,7 @@ export default function Home() {
             >
               {/* Manage your Facebook access tokens for auto-posting */}
               Last Updated: 21/05/2025
-              <span className="text-red-500"> 5:31 PM</span>
+              <span className="text-red-500"> 9:35 PM</span>
             </p>
           </div>
 
